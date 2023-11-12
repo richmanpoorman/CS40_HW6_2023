@@ -26,7 +26,7 @@ static struct test_info {
         { "halt",         NULL, "" , build_halt_test },
         { "halt-verbose", NULL, "" , build_verbose_halt_test },
         { "add"         , NULL, "" , build_add_test },
-        { "print-six" , NULL, "6", build_print_digit_test }
+        { "print-six"   , NULL, "6", build_print_digit_test }
 };
 
   
