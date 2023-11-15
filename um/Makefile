@@ -21,7 +21,7 @@ LDLIBS = -l40locality -lnetpbm -lcii40 -lm -lrt -L/comp/40/build/lib -larith40
 INCLUDES = $(shell echo *.h)
 
 ############### Modules ###############
-MODULES = Segment.o 
+MODULES = Segment.o Registers.o
 
 ############### Rules ###############
 
