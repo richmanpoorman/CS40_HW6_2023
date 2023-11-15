@@ -28,7 +28,13 @@ Segment Segment_new(uint32_t size)
         Segment seg  = ALLOC(sizeof(*seg));
 
         seg -> size  = size;
-        seg -> words = CALLOC(size, sizeof(Word));
+        if (size > 0) {
+                seg -> words = CALLOC(size, sizeof(Word));
+        } 
+        else {
+                seg -> words = NULL;
+        } 
+        
 
         return seg;
 }
@@ -66,8 +72,10 @@ Segment Segment_copy(Segment seg)
 void Segment_free(Segment *seg)
 {
         assert(seg != NULL && *seg != NULL);
-        FREE((*seg) -> words);
-        FREE(seg);
+        if ((*seg) -> words != NULL) {
+                FREE((*seg) -> words);
+        }
+        FREE(*seg);
 
         *seg = NULL;
 }
