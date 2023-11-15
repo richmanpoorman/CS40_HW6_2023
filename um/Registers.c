@@ -50,10 +50,9 @@ void Registers_free(Registers *regPointer)
  *              (uint32_t) regID -- Position/ID of the register to access
  *              (uint32_t) data -- Data to store in the register
  *  Returns   : (None)
- *  Notes     : Will CRE if the pointer Registers is null;
- *              Will CRE if the data in the pointer is null;
+ *  Notes     : Will CRE if the given set of registers is null;
  */
-void Registers_setRegisters(Registers reg, uint32_t regID, uint32_t data)
+void Registers_setRegister(Registers reg, uint32_t regID, uint32_t data)
 {
         assert(reg != NULL);
         reg->registerArray[regID] = data;
@@ -65,10 +64,9 @@ void Registers_setRegisters(Registers reg, uint32_t regID, uint32_t data)
  *  Parameters: (Registers) Set of registers
  *              (uint32_t) reg -- Position/ID of the register to access
  *  Output    : (uint32_t) regID -- Data stored in the accessed registers
- *  Notes     : Will CRE if the pointer Registers is null;
- *              Will CRE if the data in the pointer is null;      
+ *  Notes     : Will CRE if the given set of registers is null;   
  */
-uint32_t Registers_getRegisters(Registers reg, uint32_t regID)
+uint32_t Registers_getRegister(Registers reg, uint32_t regID)
 {
         assert(reg != NULL);
         return reg->registerArray[regID];
