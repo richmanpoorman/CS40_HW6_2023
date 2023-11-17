@@ -77,27 +77,6 @@ void Mem_free(Mem *mem) {
 }
 
 /*
- * Name      : seq_destructor
- * Purpose   : Frees the elements within the 
- * Parameter : (Mem *) mem -- The pointer to the Mem to free
- * Return    : None
- * Notes     : Will CRE if mem is null or *mem is null;
- *             Will set the value in mem to NULL
- */
-void seq_destructor(Seq_T *seq) {
-        if ((value != NULL) && (*value != NULL)) {
-                Seq *seq = (Seq *)value;
-                int len = Seq_length(*seq);
-                char *curr_line;
-                for (int i = 0; i < len; i++) {
-                        curr_line = Seq_remlo(*seq);
-                        free(curr_line);
-                }
-                Seq_free(seq);
-        }
-}
-
-/*
  * Name      : Mem_getSegment
  * Purpose   : Gets the full segment at a given memory id
  * Parameter : (Mem) mem -- The memory block containing the segment
