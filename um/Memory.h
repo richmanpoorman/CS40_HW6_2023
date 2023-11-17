@@ -18,16 +18,18 @@ Mem Mem_new();
 
 void Mem_free(Mem *mem);
 
-Segment Mem_getSegment(Mem mem, uint32_t memID);
+Segment Mem_getSegment(Mem mem, uint32_t segID);
 
-void Mem_setSegment(Mem mem, uint32_t memID, Segment seg);
+void Mem_setSegment(Mem mem, uint32_t segID, Segment seg);
 
 Word Mem_getWord(Mem mem, uint32_t segID, uint32_t wordID);
 
 void Mem_setWord(Mem mem, uint32_t segID, uint32_t wordID, 
                     uint32_t value);
 
-SegmentID Mem_mapNew(Mem mem);
+SegmentID Mem_mapNew(Mem mem, Segment seg);
 
 void Mem_mapFree(Mem mem, uint32_t segID);
+
+bool Mem_isInRange(Mem mem, uint32_t segID, uint32_t wordID);
 
