@@ -55,6 +55,7 @@ typedef enum INSTRUCTION_TYPE {
 void runProgram(FILE *input, FILE *output, FILE *program);
 
 CPU_State CPU_new(FILE *input, FILE *output);
+CPU_State CPU_free(CPU_State *state);
 void initializeProgram(FILE *program);
 
 uint32_t getInstruction(CPU_State state);
@@ -133,9 +134,6 @@ void CPU_free(CPU_State *state) {
         FREE(state);
         *state = NULL;
 }
-
-
-
 
 /*
  * Name      : initializeProgram
