@@ -3,7 +3,7 @@
 #ifndef SEGMENT_H_
 #define SEGMENT_H_
 
-typedef uint32_t Word;
+typedef uint32_t Word; 
 typedef struct Segment *Segment;
 
 

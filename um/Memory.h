@@ -5,18 +5,20 @@
  *   Editors    : Matthew Wong (mwong14), Ivi Fung (sfung02)
  */
 
-#ifndef MEMORY_H_
-#define MEMORY_H_
 #include <stdint.h>
+#include <stdbool.h>
 #include "Segment.h"
 
+#ifndef MEMORY_H_
+#define MEMORY_H_
+
+
 typedef struct Mem *Mem;
-typedef Word uint32_t;
-typedef SegmentID uint32_t
+typedef uint32_t SegmentID;
 
 Mem Mem_new();
 
-void Mem_free(Mem *mem);
+void Mem_freeMemory(Mem *mem);
 
 Segment Mem_getSegment(Mem mem, uint32_t segID);
 
@@ -27,9 +29,10 @@ Word Mem_getWord(Mem mem, uint32_t segID, uint32_t wordID);
 void Mem_setWord(Mem mem, uint32_t segID, uint32_t wordID, 
                     uint32_t value);
 
-SegmentID Mem_mapNew(Mem mem, Segment seg);
+SegmentID Mem_mapNew(Mem mem, uint32_t seg);
 
 void Mem_mapFree(Mem mem, uint32_t segID);
 
 bool Mem_isInRange(Mem mem, uint32_t segID, uint32_t wordID);
 
+#endif

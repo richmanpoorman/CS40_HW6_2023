@@ -11,7 +11,7 @@ int main(int argc, char *argv[])
         FILE *program = stdin;
 
         assert(argc == 2);
-        program = fopen(argv[1], 'r');
+        program = fopen(argv[1], "r");
         assert(program != NULL);
 
         runProgram(input, output, program);

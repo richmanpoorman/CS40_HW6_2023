@@ -7,24 +7,27 @@
 
 #include <stdint.h>
 #include <seq.h>
+#include <mem.h>
+#include <stdbool.h>
+#include <assert.h>
+#include <stdlib.h>
 #include "Segment.h"
 
+typedef uint32_t SegmentID;
 typedef struct Mem {
         Seq_T segments;
         Seq_T nextSeenSegID;
 } *Mem;
 
-typedef Word uint32_t;
-typedef SegmentID uint32_t;
 
 Mem Mem_new();
-void Mem_free(Mem *mem);
+void Mem_freeMemory(Mem *mem);
 Segment Mem_getSegment(Mem mem, uint32_t segID);
 void Mem_setSegment(Mem mem, uint32_t segID, Segment seg);
 Word Mem_getWord(Mem mem, uint32_t segID, uint32_t wordID);
 void Mem_setWord(Mem mem, uint32_t segID, uint32_t wordID, 
                     uint32_t value);
-SegmentID Mem_mapNew(Mem mem, Segment seg);
+SegmentID Mem_mapNew(Mem mem, uint32_t seg);
 void Mem_mapFree(Mem mem, uint32_t segID);
 bool Mem_isInRange(Mem mem, uint32_t segID, uint32_t wordID);
 
@@ -36,23 +39,24 @@ bool Mem_isInRange(Mem mem, uint32_t segID, uint32_t wordID);
  *  Notes     : Will CRE on failure to allocate memory
  *              
  */
-Mem Mem_new() {
+Mem Mem_new() 
+{
         Mem mem  = ALLOC(sizeof(*mem));
-        mem -> nextUnseenID = 0;
         mem -> segments = Seq_new(1000);   
         mem -> nextSeenSegID = Seq_new(50);
         return mem;
 }
 
 /*
- * Name      : Mem_free
+ * Name      : Mem_freeMemory
  * Purpose   : Frees the memory representation
  * Parameter : (Mem *) mem -- The pointer to the Mem to free
  * Return    : None
  * Notes     : Will CRE if mem is null or *mem is null;
  *             Will set the value in mem to NULL
  */
-void Mem_free(Mem *mem) {
+void Mem_freeMemory(Mem *mem)
+{
         assert(mem != NULL && *mem != NULL);
         
         int segLen = Seq_length((*mem) -> segments);
@@ -61,15 +65,15 @@ void Mem_free(Mem *mem) {
                 currSeg = Seq_remlo((*mem) -> segments);
                 Segment_free(currSeg);
         }
-        Seq_free((*mem) -> segments);
+        Seq_free(&((*mem) -> segments));
 
         int idLen = Seq_length((*mem) -> nextSeenSegID);
         uint32_t *currID;
-        for (int i = 0; i < segLen; i++) {
+        for (int i = 0; i < idLen; i++) {
                 currID = Seq_remlo((*mem) -> nextSeenSegID);
                 FREE(currID);
         }
-        Seq_free((*mem) -> nextSeenSegID);
+        Seq_free(&((*mem) -> nextSeenSegID));
 
         FREE(*mem);
 
@@ -85,8 +89,9 @@ void Mem_free(Mem *mem) {
  * Notes     : Will CRE if mem is NULL or the segID is greater than the 
  *             memory size
  */
-Segment Mem_getSegment(Mem mem, uint32_t segID) {
-        assert(mem != NULL && segID < Seq_length(mem -> segments));
+Segment Mem_getSegment(Mem mem, uint32_t segID) 
+{
+        assert(mem != NULL && segID < (uint32_t)Seq_length(mem -> segments));
         return Seq_get(mem -> segments, segID);
 }
 
@@ -99,8 +104,9 @@ Segment Mem_getSegment(Mem mem, uint32_t segID) {
  * Return    : None
  * Notes     : Will CRE if mem is NULL 
  */
-void Mem_setSegment(Mem mem, uint32_t segID, Segment seg) {
-        assert(mem != NULL && segID < Seq_length(mem -> segments));
+void Mem_setSegment(Mem mem, uint32_t segID, Segment seg) 
+{
+        assert(mem != NULL && segID < (uint32_t)Seq_length(mem -> segments));
         Seq_put(mem -> segments, segID, seg);
 }
 
@@ -114,8 +120,9 @@ void Mem_setSegment(Mem mem, uint32_t segID, Segment seg) {
  * Notes     : Will CRE if mem is NULL or the segID is greater than the 
  *             memory size
  */
-Word Mem_getWord(Mem mem, uint32_t segID, uint32_t wordID) {
-        assert(mem != NULL && segID < Seq_length(mem -> segments));
+Word Mem_getWord(Mem mem, uint32_t segID, uint32_t wordID) 
+{
+        assert(mem != NULL && segID < (uint32_t)Seq_length(mem -> segments));
         Segment seg = Mem_getSegment(mem, segID);
         return Segment_getWord(seg, wordID);
 }
@@ -132,8 +139,9 @@ Word Mem_getWord(Mem mem, uint32_t segID, uint32_t wordID) {
  *             memory size
  */
 void Mem_setWord(Mem mem, uint32_t segID, uint32_t wordID, 
-                    uint32_t value) {
-        assert(mem != NULL && segID < Seq_length(mem -> segments));
+                    uint32_t value) 
+{
+        assert(mem != NULL && segID < (uint32_t)Seq_length(mem -> segments));
         Segment seg = Mem_getSegment(mem, segID);
         Segment_setWord(seg, wordID, value);
 }
@@ -146,17 +154,18 @@ void Mem_setWord(Mem mem, uint32_t segID, uint32_t wordID,
  * Return    : None
  * Notes     : Will CRE if mem is NULL
  */
-SegmentID Mem_mapNew(Mem mem, Segment seg) {
+SegmentID Mem_mapNew(Mem mem, uint32_t seg) 
+{
         assert(mem != NULL);
         /* uses an unused segment ID if they exist in memory */
         if (Seq_length(mem -> nextSeenSegID) > 0) { 
-                uint32_t index = Seq_remlo(mem -> nextSeenSegID);
-                Seq_put(mem -> segments, index, seg);
+                uint32_t index = 
+                        (uint32_t)(uintptr_t)Seq_remlo(mem -> nextSeenSegID);
+                Seq_put(mem -> segments, index, Segment_new(seg));
                 return index; 
         }
         else { /* otherwise creates a completely new segment ID */
-                Seq_addhi(mem -> segments, seg);
-                
+                Seq_addhi(mem -> segments, Segment_new(seg));
         }
         return Seq_length(mem -> segments) - 1;
 }
@@ -170,11 +179,12 @@ SegmentID Mem_mapNew(Mem mem, Segment seg) {
  * Notes     : Will CRE if mem is NULL or the segID is greater than the 
  *             memory size
  */
-void Mem_mapFree(Mem mem, uint32_t segID) {
-        assert(mem != NULL && segID < Seq_length(mem -> segments));
+void Mem_mapFree(Mem mem, uint32_t segID) 
+{
+        assert(mem != NULL && segID < (uint32_t)Seq_length(mem -> segments));
         Segment seg = Seq_get(mem -> segments, segID);
-        Segment_free(seg);
-        Seq_addhi(mem -> nextSeenSegID, segID);
+        Segment_free(&seg);
+        Seq_addhi(mem -> nextSeenSegID, (void *)(uintptr_t)segID);
 }
 
 /*
@@ -186,9 +196,10 @@ void Mem_mapFree(Mem mem, uint32_t segID) {
  * Return    : True if $m[segID][wordID] is mapped, false otherwise
  * Notes     : Will CRE if mem is NULL
  */
-bool Mem_isInRange(Mem mem, uint32_t segID, uint32_t wordID) {
+bool Mem_isInRange(Mem mem, uint32_t segID, uint32_t wordID) 
+{
         /* checks that segID is in bounds*/
-        if (segID >= Seq_length(mem -> segments)) { 
+        if (segID >= (uintptr_t)Seq_length(mem -> segments)) { 
                 return false;
         }
         /* checks that wordID is in bounds*/

@@ -4,6 +4,8 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <seq.h>
+#include <assert.h>
+#include <bitpack.h>
 
 #define MAX_VALUE 0xffffffff
 #define instructionLsb 28
@@ -55,8 +57,8 @@ typedef enum INSTRUCTION_TYPE {
 void runProgram(FILE *input, FILE *output, FILE *program);
 
 CPU_State CPU_new(FILE *input, FILE *output);
-CPU_State CPU_free(CPU_State *state);
-void initializeProgram(FILE *program);
+void CPU_free(CPU_State *state);
+void initializeProgram(CPU_State state, FILE *program);
 
 uint32_t getInstruction(CPU_State state);
 void executeFunction(CPU_State state);
@@ -68,7 +70,7 @@ void CPU_add(CPU_State state, uint32_t ra, uint32_t rb, uint32_t rc);
 void CPU_mult(CPU_State state, uint32_t ra, uint32_t rb, uint32_t rc);
 void CPU_div(CPU_State state, uint32_t ra, uint32_t rb, uint32_t rc);
 void CPU_nand(CPU_State state, uint32_t ra, uint32_t rb, uint32_t rc);
-void CPU_halt(CPU_State);
+void CPU_halt();
 void CPU_mapSeg(CPU_State state, uint32_t rb, uint32_t rc);
 void CPU_unmapSeg(CPU_State state, uint32_t rc);
 void CPU_printOut(CPU_State state, uint32_t rc);
@@ -113,7 +115,9 @@ CPU_State CPU_new(FILE *input, FILE *output) {
         cpu -> mem = Mem_new();
         cpu -> input = input;
         cpu -> output = output;
-        cpu -> registers = CALLOC(8, sizeof(uint32_t));
+        for (int i = 0; i < 8; i++) {
+                cpu -> registers[i] = 0;
+        }
         cpu -> programCounter = 0;
         cpu -> isRunning = true;
 
@@ -129,8 +133,8 @@ CPU_State CPU_new(FILE *input, FILE *output) {
  * Notes     : Keeps track of the input and output files
  */
 void CPU_free(CPU_State *state) {
-        Mem_free(&( (*state) -> mem ))
-        FREE(&( (*state) -> registers ));
+        CPU_State cpu = *state;
+        Mem_freeMemory(&(cpu -> mem));
         FREE(state);
         *state = NULL;
 }
@@ -153,12 +157,13 @@ void initializeProgram(CPU_State state, FILE *program)
                 for (int i = 3; i >= 0; i++) {
                         assert(!feof(program) && !ferror(program));
                         char byte = fgetc(program);
-                        instruction = Bitpack_newu(instruction, i * 8, 8);
+                        instruction = Bitpack_newu(instruction, 8, i * 8, 
+                                                   byte);
                 }
                 Seq_addhi(instructions, (void *)(uintptr_t)instruction);
         }
 
-        Segment program = Segment_new(Seq_length(instructions));
+        Segment seg0 = Segment_new(Seq_length(instructions));
 
         int index = 0;
         while (Seq_length(instructions) > 0)
@@ -166,12 +171,12 @@ void initializeProgram(CPU_State state, FILE *program)
                 uint32_t instruction = 
                         (uint32_t)(uintptr_t) Seq_remlo(instructions);
                 
-                Segment_setWord(program, index, instruction);
+                Segment_setWord(seg0, index, instruction);
                 index++;
         }
 
         Mem mem = state -> mem;
-        Mem_setSegment(mem, 0, program);
+        Mem_setSegment(mem, 0, seg0);
 
         Seq_free(&instructions);
 }
@@ -192,14 +197,14 @@ void executeFunction(CPU_State state)
         assert(instruction != MAX_VALUE);
 
         INSTRUCTION_TYPE instructionType = Bitpack_getu(instruction, 
-                                                        instructionLsb, 
-                                                        instructionSize);
+                                                        instructionSize,
+                                                        instructionLsb);
 
-        uint32_t ra = Bitpack_getu(instruction, raLsb, registerIDSize);
-        uint32_t rb = Bitpack_getu(instruction, rbLsb, registerIDSize);
-        uint32_t rc = Bitpack_getu(instruction, rcLsb, registerIDSize);
-        uint32_t rL = Bitpack_getu(instruction, rLoad, registerIDSize);
-        uint32_t loadVal = Bitpack_getu(instruction, loadLsb, loadSize);
+        uint32_t ra = Bitpack_getu(instruction, registerIDSize, raLsb);
+        uint32_t rb = Bitpack_getu(instruction, registerIDSize, rbLsb);
+        uint32_t rc = Bitpack_getu(instruction, registerIDSize, rcLsb);
+        uint32_t rL = Bitpack_getu(instruction, registerIDSize, rLoad);
+        uint32_t loadVal = Bitpack_getu(instruction, loadSize, loadLsb);
 
         switch(instructionType) {
                 case CMOV:
@@ -242,7 +247,7 @@ void executeFunction(CPU_State state)
                 CPU_loadProgram(state, rb, rc);
                 break;
                 case LOADVALUE:
-                CPU_loadValue(state, rL)
+                CPU_loadValue(state, rL, loadVal);
                 break;
                 default:
                 assert(false); /* Throw an error if not a good key */
@@ -250,7 +255,7 @@ void executeFunction(CPU_State state)
         }
 
         /* If we are done reading the program, then set the flag */
-        if (!Mem_isInRange(mem, 0, state -> programCounter)) {
+        if (!Mem_isInRange(state -> mem, 0, state -> programCounter)) {
                 state -> isRunning = false;
         }
 }
@@ -267,7 +272,7 @@ uint32_t getInstruction(CPU_State state)
 {
         Mem mem = state -> mem;
         
-        if (!Mem_isInRange(mem, segID, wordID)) {
+        if (!Mem_isInRange(mem, 0, state -> programCounter)) {
                 return MAX_VALUE;
         }
         uint32_t instruction = Mem_getWord(mem, 0, state -> programCounter);
@@ -287,7 +292,7 @@ uint32_t getInstruction(CPU_State state)
  */
 void CPU_cmove(CPU_State state, uint32_t ra, uint32_t rb, uint32_t rc)
 {
-        uint32_t registers [8] = state -> registers;
+        uint32_t *registers = state -> registers;
         if (registers[rc] == 0) {
                 return;
         }
@@ -306,8 +311,8 @@ void CPU_cmove(CPU_State state, uint32_t ra, uint32_t rb, uint32_t rc)
  */
 void CPU_segLoad(CPU_State state, uint32_t ra, uint32_t rb, uint32_t rc)
 {
-        uint32_t registers [8] = state -> registers;
-        Mem      mem           = state -> mem;
+        uint32_t *registers = state -> registers;
+        Mem      mem        = state -> mem;
         registers[ra] = Mem_getWord(mem, registers[rb], registers[rc]);
 }
 
@@ -323,8 +328,9 @@ void CPU_segLoad(CPU_State state, uint32_t ra, uint32_t rb, uint32_t rc)
  */
 void CPU_segStore(CPU_State state, uint32_t ra, uint32_t rb, uint32_t rc)
 {
-        uint32_t registers [8] = state -> registers;
-        Mem_setWord(mem, regiseters[ra], registers[rb], registers[rc]);
+        uint32_t *registers = state -> registers;
+        Mem       mem       = state -> mem;
+        Mem_setWord(mem, registers[ra], registers[rb], registers[rc]);
 }
 
 /*
@@ -339,7 +345,7 @@ void CPU_segStore(CPU_State state, uint32_t ra, uint32_t rb, uint32_t rc)
  */
 void CPU_add(CPU_State state, uint32_t ra, uint32_t rb, uint32_t rc)
 {
-        uint32_t registers [8] = state -> registers;
+        uint32_t *registers = state -> registers;
         registers[ra] = registers[rb] + registers[rc];
 }
 
@@ -355,7 +361,7 @@ void CPU_add(CPU_State state, uint32_t ra, uint32_t rb, uint32_t rc)
  */
 void CPU_mult(CPU_State state, uint32_t ra, uint32_t rb, uint32_t rc)
 {
-        uint32_t registers [8] = state -> registers;
+        uint32_t *registers = state -> registers;
         registers[ra] = registers[rb] * registers[rc];
 }
 
@@ -372,8 +378,8 @@ void CPU_mult(CPU_State state, uint32_t ra, uint32_t rb, uint32_t rc)
  */
 void CPU_div(CPU_State state, uint32_t ra, uint32_t rb, uint32_t rc)
 {
-        uint32_t registers [8] = state -> registers;
-        assert(registers[rc] != 0)
+        uint32_t *registers = state -> registers;
+        assert(registers[rc] != 0);
         registers[ra] = registers[rb] / registers[rc];
 }
 
@@ -389,7 +395,7 @@ void CPU_div(CPU_State state, uint32_t ra, uint32_t rb, uint32_t rc)
  */
 void CPU_nand(CPU_State state, uint32_t ra, uint32_t rb, uint32_t rc)
 {
-        uint32_t registers [8] = state -> registers;
+        uint32_t *registers = state -> registers;
         registers[ra] = ~(registers[rb] & registers[rc]);
 
 }
@@ -417,8 +423,8 @@ void CPU_halt(CPU_State state)
  */
 void CPU_mapSeg(CPU_State state, uint32_t rb, uint32_t rc)
 {
-        uint32_t registers [8] = state -> registers;
-        Mem      mem           = state -> mem;
+        uint32_t *registers = state -> registers;
+        Mem      mem        = state -> mem;
 
         registers[rb] = Mem_mapNew(mem, registers[rc]);
 }
@@ -433,8 +439,8 @@ void CPU_mapSeg(CPU_State state, uint32_t rb, uint32_t rc)
  */
 void CPU_unmapSeg(CPU_State state, uint32_t rc)
 {
-        uint32_t registers [8] = state -> registers;
-        Mem      mem           = state -> mem;
+        uint32_t *registers = state -> registers;
+        Mem      mem        = state -> mem;
 
         Mem_mapFree(mem, registers[rc]);
 }
@@ -449,8 +455,8 @@ void CPU_unmapSeg(CPU_State state, uint32_t rc)
  */
 void CPU_printOut(CPU_State state, uint32_t rc)
 {
-        uint32_t  registers [8] = state -> registers;
-        FILE     *output        = state -> output;
+        uint32_t *registers = state -> registers;
+        FILE     *output    = state -> output;
 
         char printChar = registers[rc];
         fprintf(output, "%c", printChar);
@@ -467,8 +473,8 @@ void CPU_printOut(CPU_State state, uint32_t rc)
  */
 void CPU_readIn(CPU_State state, uint32_t rc)
 {
-        uint32_t  registers [8] = state -> registers;
-        FILE     *input         = state -> input;
+        uint32_t *registers = state -> registers;
+        FILE     *input     = state -> input;
 
         if (feof(input)) {
                 registers[rc] = MAX_VALUE;
@@ -490,8 +496,8 @@ void CPU_readIn(CPU_State state, uint32_t rc)
  */
 void CPU_loadProgram(CPU_State state, uint32_t rb, uint32_t rc)
 {
-        uint32_t registers [8] = state -> registers;
-        Mem      mem           = state -> mem;
+        uint32_t *registers = state -> registers;
+        Mem      mem        = state -> mem;
 
         state -> programCounter = registers[rc];
 
@@ -515,7 +521,7 @@ void CPU_loadProgram(CPU_State state, uint32_t rb, uint32_t rc)
  */
 void CPU_loadValue(CPU_State state, uint32_t rL, uint32_t val)
 {
-        uint32_t registers [8] = state -> registers;
+        uint32_t *registers = state -> registers;
         registers[rL] = val;
 }
 

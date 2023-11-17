@@ -6,22 +6,24 @@ CC = gcc
 
 # Include path
 IFLAGS = -I/comp/40/build/include -I/usr/sup/cii40/include/cii \
-	 -I/comp/40/build/lib
+	 -I/comp/40/build/lib -I/comp/40/build/include
 
 # Compiler Flags
 CFLAGS = -g -std=gnu99 -Wall -Wextra -Werror -Wfatal-errors -pedantic $(IFLAGS)
 
 # Linking Flags
 LDFLAGS = -g -L/comp/40/build/lib -L/usr/sup/cii40/lib64
+	  
 
 # Libraries for Linking
-LDLIBS = -l40locality -lnetpbm -lcii40 -lm -lrt -L/comp/40/build/lib -larith40
+LDLIBS = -lbitpack -lcii40 -lm -lrt -L/comp/40/build/lib 
+ 	 
 
 # all the .h files
 INCLUDES = $(shell echo *.h)
 
 ############### Modules ###############
-MODULES = Segment.o Registers.o Mem.o CPU.o
+MODULES = Segment.o Memory.o CPU.o
 
 ############### Rules ###############
 
