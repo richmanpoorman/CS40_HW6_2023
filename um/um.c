@@ -6,12 +6,12 @@
 
 int main(int argc, char *argv[])
 {
-        FILE *input   = stdin;
-        FILE *output  = stdout;
-        FILE *program = stdin;
+        
 
         assert(argc == 2);
-        program = fopen(argv[1], "r");
+        FILE *input   = stdin;
+        FILE *output  = stdout;
+        FILE *program = fopen(argv[1], "r");
         assert(program != NULL);
 
         runProgram(input, output, program);

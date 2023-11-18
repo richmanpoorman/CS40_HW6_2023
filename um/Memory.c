@@ -43,7 +43,9 @@ Mem Mem_new()
 {
         Mem mem  = ALLOC(sizeof(*mem));
         mem -> segments = Seq_new(1000);   
+        Seq_addhi(mem -> segments, Segment_new(0));
         mem -> nextSeenSegID = Seq_new(50);
+
         return mem;
 }
 
@@ -58,26 +60,20 @@ Mem Mem_new()
 void Mem_freeMemory(Mem *mem)
 {
         assert(mem != NULL && *mem != NULL);
+        Mem memory = *mem;
+
+        Seq_T segments = memory -> segments;
+        while (Seq_length(segments) > 0) {
+                Segment seg = (Segment) Seq_remlo(segments);
+                if (seg != NULL) {
+                        Segment_free(&seg);
+                }   
+        }
+        Seq_free(&(memory -> segments));
+
+        Seq_free(&(memory -> nextSeenSegID));
         
-        int segLen = Seq_length((*mem) -> segments);
-        Segment *currSeg;
-        for (int i = 0; i < segLen; i++) {
-                currSeg = Seq_remlo((*mem) -> segments);
-                Segment_free(currSeg);
-        }
-        Seq_free(&((*mem) -> segments));
-
-        int idLen = Seq_length((*mem) -> nextSeenSegID);
-        uint32_t *currID;
-        for (int i = 0; i < idLen; i++) {
-                currID = Seq_remlo((*mem) -> nextSeenSegID);
-                FREE(currID);
-        }
-        Seq_free(&((*mem) -> nextSeenSegID));
-
         FREE(*mem);
-
-        *mem = NULL;
 }
 
 /*
@@ -107,6 +103,8 @@ Segment Mem_getSegment(Mem mem, uint32_t segID)
 void Mem_setSegment(Mem mem, uint32_t segID, Segment seg) 
 {
         assert(mem != NULL && segID < (uint32_t)Seq_length(mem -> segments));
+        Segment prevSegment = Mem_getSegment(mem, segID);
+        Segment_free(&prevSegment);
         Seq_put(mem -> segments, segID, seg);
 }
 
