@@ -148,22 +148,22 @@ void Mem_setWord(Mem mem, uint32_t segID, uint32_t wordID,
  * Name      : Mem_mapNew
  * Purpose   : Creates a new segment in memory
  * Parameter : (Mem) mem -- The memory block to add the segment to
- *             (Segment) seg -- The segment to add to memory
+ *             (uint32_t) size -- Size of the segment to add
  * Return    : None
  * Notes     : Will CRE if mem is NULL
  */
-SegmentID Mem_mapNew(Mem mem, uint32_t seg) 
+SegmentID Mem_mapNew(Mem mem, uint32_t size) 
 {
         assert(mem != NULL);
         /* uses an unused segment ID if they exist in memory */
         if (Seq_length(mem -> nextSeenSegID) > 0) { 
                 uint32_t index = 
                         (uint32_t)(uintptr_t)Seq_remlo(mem -> nextSeenSegID);
-                Seq_put(mem -> segments, index, Segment_new(seg));
+                Seq_put(mem -> segments, index, Segment_new(size));
                 return index; 
         }
         else { /* otherwise creates a completely new segment ID */
-                Seq_addhi(mem -> segments, Segment_new(seg));
+                Seq_addhi(mem -> segments, Segment_new(size));
         }
         return Seq_length(mem -> segments) - 1;
 }

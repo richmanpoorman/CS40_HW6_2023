@@ -29,7 +29,7 @@ Word Mem_getWord(Mem mem, uint32_t segID, uint32_t wordID);
 void Mem_setWord(Mem mem, uint32_t segID, uint32_t wordID, 
                     uint32_t value);
 
-SegmentID Mem_mapNew(Mem mem, uint32_t seg);
+SegmentID Mem_mapNew(Mem mem, uint32_t size);
 
 void Mem_mapFree(Mem mem, uint32_t segID);
 

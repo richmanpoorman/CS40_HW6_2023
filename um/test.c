@@ -4,8 +4,10 @@
 #include <assert.h>
 #include <except.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 #include "Segment.h"
+#include "Memory.h"
 
 #define CHECK(VALUE) { if (!(VALUE)) { return false; } }
 
@@ -325,6 +327,142 @@ bool segmentCopyAndMod()
         return true;
 }
 
+/*
+ * Name       : memNewTest
+ * Purpose    : Checks that a new memory block was created with a 
+ *              by checking that the memory is non-null, with 
+ *              segment 0 set to a default size of 0
+ * Parameters : None
+ * Return     : (bool) True if the test passes, false otherwise
+ * Notes      : Checks that nothing is initialized; 
+ *              Uses Mem_new and Mem_getSegment
+ */
+bool memNewTest() 
+{
+        Mem mem = Mem_new();
+
+        CHECK(mem != NULL);
+        
+        Segment seg = Mem_getSegment(mem, 0);
+        CHECK(Segment_size(seg) == 0);
+
+        Mem_freeMemory(&mem);
+
+        return true;
+}
+
+/*
+ * Name       : memFreeTest
+ * Purpose    : Checks that the memory address is null after freeing
+ *              and that there is no memory leaks
+ * Parameters : None
+ * Return     : (bool) True if the test passes, false otherwise
+ * Notes      : Uses Mem_new and Mem_free
+ */
+bool memFreeTest() 
+{
+        Mem mem = Mem_new();
+
+        Mem_freeMemory(&mem);
+        
+        CHECK(mem == NULL);
+
+        return true;
+
+}
+
+/*
+ * Name       : memGetNewSegmentTest
+ * Purpose    : Check that it can create a new segment
+ * Parameters : None
+ * Return     : (bool) True if the test passes, false otherwise
+ * Notes      : Uses Mem_mapNew and Mem_getSegment
+ */
+bool memGetNewSegmentTest() 
+{
+        Mem mem = Mem_new();
+
+        CHECK(mem != NULL);
+        
+        uint32_t segID = Mem_mapNew(mem, 8);
+        Segment seg = Mem_getSegment(mem, segID);
+        CHECK(Segment_size(seg) == 8);
+
+        Mem_freeMemory(&mem);
+
+        return true;
+}
+
+/*
+ * Name       : memGetOutOfBoundsTest
+ * Purpose    : Checks that it can not get a segment out of bounds
+ * Parameters : None
+ * Return     : (bool) True if the test passes, false otherwise
+ * Notes      : Uses Mem_mapNew, Mem_getSegment, Segment_new, 
+ *              and Mem_setSegment
+ */
+bool memGetOutOfBoundsTest() 
+{
+        Mem mem = Mem_new();
+
+        CHECK(mem != NULL);
+        
+        Mem_getSegment(mem, 20);
+
+        Mem_freeMemory(&mem);
+
+        return true;
+
+}
+
+/*
+ * Name       : memSetSegmentZeroTest
+ * Purpose    : Sets segment 0 to a new segment with non-zero size
+ * Parameters : None
+ * Return     : (bool) True if the test passes, false otherwise
+ * Notes      : Mem_setSegment, Segment_new, and Mem_getSegment
+ */
+bool memSetSegmentZeroTest() 
+{
+        Mem mem = Mem_new();
+
+        CHECK(mem != NULL);
+        
+        Segment seg = Segment_new(30);
+        Mem_setSegment(mem, 0, seg);
+        Segment seg2 = Mem_getSegment(mem, 0);
+        CHECK(Segment_size(seg2) == 30);
+
+        Mem_freeMemory(&mem);
+
+        return true;
+}
+
+/*
+ * Name       : memSetSegmentSizedOneTest
+ * Purpose    : Creates a new segment with size 1, then sets the 
+ *              value to a random value
+ * Parameters : None
+ * Return     : (bool) True if the test passes, false otherwise
+ * Notes      : Uses rand();
+ *              Uses Mem_mapNew, Mem_setWord, and Mem_getWord
+ */
+bool memSetSegmentSizedOneTest()
+{
+       Mem mem = Mem_new();
+       
+       CHECK(mem != NULL);
+
+       Segment seg = Segment_new(1);
+
+       Mem_setSegment(mem, 1, seg);
+       Mem_setWord(mem, )
+       Segment seg2 = Mem_getSegment(mem, 0);
+       CHECK(Segment_size(seg2) == 30);
+       Mem_freeMemory(&mem);
+
+        return true; 
+}
 
 bool tryOrCatch(bool (*testFunction)())
 {
@@ -351,7 +489,12 @@ int main(int argc, char *argv[])
                 segmentCopyTest,
                 segmentCopyZero,
                 segmentCopyTwo,
-                segmentCopyAndMod
+                segmentCopyAndMod,
+
+                memNewTest,
+                memFreeTest,
+                memGetNewSegmentTest,
+                memSetSegmentZeroTest
         };
         char *functionNames[] = {
                 "segmentNewTest",
@@ -366,18 +509,25 @@ int main(int argc, char *argv[])
                 "segmentCopyTest",
                 "segmentCopyZero",
                 "segmentCopyTwo",
-                "segmentCopyAndMod"
+                "segmentCopyAndMod",
+
+                "memNewTest",
+                "memFreeTest",
+                "memGetNewSegmentTest",
+                "memSetSegmentZeroTest"
         };
 
         TestFunction failureTests[] = {
                 segmentSetLast,
                 segmentBoundsFailure,
-                segmentZeroFailure
+                segmentZeroFailure,
+                memGetOutOfBoundsTest
         };
         char *failFunctionNames[] = {
                 "segmentSetLast",
                 "segmentBoundsFailure",
-                "segmentZeroFailure"
+                "segmentZeroFailure",
+                "memGetOutOfBoundsTest"
         };
         (void) failureTests;
         (void) failFunctionNames;
@@ -396,6 +546,21 @@ int main(int argc, char *argv[])
                         fprintf(stderr, "FAILED\n");
                 }
         }
+
+        // int s3 = sizeof(failureTests) / sizeof(*failureTests);
+        // int s4 = sizeof(failFunctionNames) / sizeof(*failFunctionNames);
+
+        // assert(s3 == s4);
+
+        // for (int i = 0; i < s3; i++) {
+        //         fprintf(stderr, "%s: ", failFunctionNames[i]);
+        //         if (tryOrCatch(failureTests[i])) {
+        //                 fprintf(stderr, "PASSED\n");
+        //         }
+        //         else {
+        //                 fprintf(stderr, "FAILED\n");
+        //         }
+        // }
 
         (void) argc;
         (void) argv;
