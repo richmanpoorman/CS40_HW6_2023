@@ -96,7 +96,7 @@ void mult_overflowTest(Seq_T sequence)
         uint32_t maxValue = 0;
         maxValue = ~maxValue;
         loadValue(sequence, r1, 30);
-        loadValue(sequence, r2, maxValue - 1)
+        loadValue(sequence, r2, maxValue - 1);
         mult(sequence, r0, r1, r2);
         printOut(sequence, r0);
         halt(sequence); 
