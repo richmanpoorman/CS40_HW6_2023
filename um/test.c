@@ -49,6 +49,24 @@ bool segmentFreeTest()
         return true;
 }
 /*
+ * Name       : segmentZeroFreeTest
+ * Purpose    : Frees a segment of size 0 and checks that the segment is set to 
+                null without memory leaks
+ * Parameters : None
+ * Return     : (bool) True if the test passes, false otherwise
+ * Notes      : Uses sSegment_free
+ */
+bool segmentZeroFreeTest()
+{
+        Segment seg = Segment_new(0);
+
+        Segment_free(&seg);
+        
+        CHECK(seg == NULL);
+
+        return true;
+}
+/*
  * Name       : segmentSetZero
  * Purpose    : Set the 0th word to 100 and check the 0th word is 100
  * Parameters : None
@@ -449,19 +467,215 @@ bool memSetSegmentZeroTest()
  */
 bool memSetSegmentSizedOneTest()
 {
+        Mem mem = Mem_new();
+
+        CHECK(mem != NULL);
+        
+        Mem_mapNew(mem, 1);
+        Segment seg = Mem_getSegment(mem, 1);
+        CHECK(Segment_size(seg) == 1);
+
+        Mem_setWord(mem, 1, 0, 32);
+        CHECK(Mem_getWord(mem, 1, 0) == 32);
+        
+        Mem_freeMemory(&mem);
+
+        return true;
+}
+
+/*
+ * Name       : memSetSegmentToCopyTest
+ * Purpose    : Sets segment 0 to a copy of segment 1
+ * Parameters : None
+ * Return     : (bool) True if the test passes, false otherwise
+ * Notes      : Uses Mem_mapNew, Mem_getSegment, Segment_copy, 
+ *              Mem_setSegment, Mem_setWord, Mem_getWord
+ */
+bool memSetSegmentToCopyTest() 
+{
+        Mem mem = Mem_new();
+
+        CHECK(mem != NULL);
+        
+        Mem_mapNew(mem, 1);
+        Segment seg = Mem_getSegment(mem, 1);
+        CHECK(Segment_size(seg) == 1);
+
+        Mem_setWord(mem, 1, 0, 32);
+        CHECK(Mem_getWord(mem, 1, 0) == 32);
+        
+        Segment seg2 = Segment_copy(seg);
+        Mem_setSegment(mem, 0, seg2);
+        CHECK(Mem_getWord(mem, 0, 0) == 32);
+
+        Mem_freeMemory(&mem);
+
+        return true;
+}
+
+/*
+ * Name       : memSetNewSegmentTest
+ * Purpose    : Checks that a new segment can be created, as well as
+ *              can have set and get be used on the segment
+ * Parameters : None
+ * Return     : (bool) True if the test passes, false otherwise
+ * Notes      : Uses Mem_mapNew, Mem_getSegment, Segment_setWord
+ *             Mem_setSegment
+ */
+bool memSetNewSegmentTest()
+{
+        Mem mem = Mem_new();
+
+        CHECK(mem != NULL);
+        
+        Mem_mapNew(mem, 5);
+        Segment seg = Mem_getSegment(mem, 1);
+        CHECK(Segment_size(seg) == 5);
+
+        for (uint32_t count = 0; count < 5; count++) {
+                Mem_setWord(mem, 1, count, count);
+        }
+
+        for (uint32_t count = 0; count < 5; count++) {
+                CHECK(Mem_getWord(mem, 1, count) == count);
+        }
+        
+        Mem_freeMemory(&mem);
+
+        return true;
+}
+
+/*
+ * Name       : memMakeManySegmentsTest
+ * Purpose    : Makes a random amount of segments with segments 
+ *              with random size, and checks that it can find them
+ * Parameters : None
+ * Return     : (bool) True if the test passes, false otherwise
+ * Notes      : Does not set any of the segments, only checks 
+ *              if they are accessible; 
+ *              Uses rand(); 
+ *              Uses Mem_mapNew and Mem_getSegment
+ */
+bool memMakeManySegmentsTest()
+{
+        Mem mem = Mem_new();
+
+        CHECK(mem != NULL);
+        
+        for (uint32_t count = 1; count < 100; count++) {
+                Mem_mapNew(mem, count);
+        }
+
+        for (uint32_t count = 1; count < 100; count++) {
+                Segment seg= Mem_getSegment(mem, count);
+                CHECK(Segment_size(seg) == count);
+        }
+                
+        Mem_freeMemory(&mem);
+
+        return true;
+}
+
+/*
+ * Name       : memMakeMaxSegmentsTest
+ * Purpose    : Makes more segments than it can handle(2^32 segments)
+ * Parameters : None
+ * Return     : (bool) True if the test passes, false otherwise
+ * Notes      : Should catch error; 
+ *              Uses Mem_mapNew
+ */
+bool memMakeMaxSegmentsTest()
+{
+        Mem mem = Mem_new();
+
+        uint32_t maxValue = 0;
+        maxValue = ~maxValue;
+
+        CHECK(mem != NULL);
+        
+        for (uint32_t count = 0; count < maxValue; count++) {
+                Mem_mapNew(mem, 1);
+        }
+                
+        Mem_freeMemory(&mem);
+
+        return true;
+}
+
+/*
+ * Name       : memCheckZeroSegmentsTest
+ * Purpose    : Makes a random amount of segments with segments 
+ *              with random size, and checks that they all have zeros
+ * Parameters : None
+ * Return     : (bool) True if the test passes, false otherwise
+ * Notes      : Uses Mem_mapNew and Mem_getWord
+ */
+bool memCheckZeroSegmentsTest()
+{
+        
+}
+
+
+/*
+ * Name       : memFreeThenMap
+ * Purpose    : Create segments 1, 2, 3 and free 2, then check that 
+                the next segment made is segment 2
+ * Parameters : None
+ * Return     : (bool) True if the test passes, false otherwise
+ * Notes      : Uses mem_mapFree and Mem_getSegment
+ */
+bool memFreeThenMap()
+{
        Mem mem = Mem_new();
        
        CHECK(mem != NULL);
 
-       Segment seg = Segment_new(1);
+       Mem_mapNew(mem, 1);
+       Mem_mapNew(mem, 2);
+       Mem_mapNew(mem, 3);
 
-       Mem_setSegment(mem, 1, seg);
-       Mem_setWord(mem, )
-       Segment seg2 = Mem_getSegment(mem, 0);
-       CHECK(Segment_size(seg2) == 30);
+       Segment seg1 = Mem_getSegment(mem, 1);
+       CHECK(Segment_size(seg1) == 1);
+       Segment seg2 = Mem_getSegment(mem, 2);
+       CHECK(Segment_size(seg2) == 2);
+       Segment seg3 = Mem_getSegment(mem, 3);
+       CHECK(Segment_size(seg3) == 3);
+
+       Mem_mapFree(mem, 2);
+       Mem_mapNew(mem, 4);
+
+       Segment seg4 = Mem_getSegment(mem, 2);
+       CHECK(Segment_size(seg4) == 4);
+
        Mem_freeMemory(&mem);
+       
+       return true; 
+}
 
-        return true; 
+/*
+ * Name       : memCleanupTest
+ * Purpose    : Add many Segments, then immediately free Memory
+ * Parameters : None
+ * Return     : (bool) True if the test passes, false otherwise
+ * Notes      : Uses mem_mapNew and Mem_freeMemory
+ */
+bool memCleanupTest()
+{
+       Mem mem = Mem_new();
+       
+       CHECK(mem != NULL);
+
+       uint32_t count = 0;
+
+       while (count < 1000) {
+                Mem_mapNew(mem, count);
+                count++;
+       }
+
+       Mem_freeMemory(&mem);
+       CHECK(mem == NULL);
+       
+       return true; 
 }
 
 bool tryOrCatch(bool (*testFunction)())
@@ -478,7 +692,8 @@ int main(int argc, char *argv[])
         
         TestFunction testFunctions[] = {
                 segmentNewTest,
-                segmentFreeTest, 
+                segmentFreeTest,
+                segmentZeroFreeTest, 
                 segmentSetZero,
                 
                 segmentCheckThree,
@@ -494,11 +709,20 @@ int main(int argc, char *argv[])
                 memNewTest,
                 memFreeTest,
                 memGetNewSegmentTest,
-                memSetSegmentZeroTest
+                memSetSegmentZeroTest,
+
+                memSetSegmentSizedOneTest,
+                memSetSegmentToCopyTest,
+                memSetNewSegmentTest,
+                memMakeManySegmentsTest,
+
+                memFreeThenMap,
+                memCleanupTest
         };
         char *functionNames[] = {
                 "segmentNewTest",
-                "segmentFreeTest", 
+                "segmentFreeTest",
+                "segmentZeroFreeTest",
                 "segmentSetZero",
                 
                 "segmentCheckThree",
@@ -514,20 +738,30 @@ int main(int argc, char *argv[])
                 "memNewTest",
                 "memFreeTest",
                 "memGetNewSegmentTest",
-                "memSetSegmentZeroTest"
+                "memSetSegmentZeroTest",
+
+                "memSetSegmentSizedOneTest",
+                "memSetSegmentToCopyTest",
+                "memSetNewSegmentTest",
+                "memMakeManySegmentsTest",
+
+                "memFreeThenMap",
+                "memCleanupTest"
         };
 
         TestFunction failureTests[] = {
                 segmentSetLast,
                 segmentBoundsFailure,
                 segmentZeroFailure,
-                memGetOutOfBoundsTest
+                memGetOutOfBoundsTest,
+                memMakeMaxSegmentsTest
         };
         char *failFunctionNames[] = {
                 "segmentSetLast",
                 "segmentBoundsFailure",
                 "segmentZeroFailure",
-                "memGetOutOfBoundsTest"
+                "memGetOutOfBoundsTest",
+                "memMakeMaxSegmentsTest"
         };
         (void) failureTests;
         (void) failFunctionNames;
