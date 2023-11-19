@@ -76,7 +76,7 @@ void printGivenCharsTest(Seq_T stream)
         loadValue(stream, r7, 0);
 
         /* Read the input... (jump back with r6) */
-        readInput(stream, r0);
+        readIn(stream, r0);
 
         /* Put the not r0 into r3 */
         nand(stream, r3, r0, r0);
