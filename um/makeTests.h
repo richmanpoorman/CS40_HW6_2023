@@ -15,7 +15,6 @@ typedef enum REGISTER {
 
 typedef uint32_t Instruction;
 
-void cmov(Seq_T stream, REGISTER ra, REGISTER rb, REGISTER rc);
 void cmove(Seq_T stream, REGISTER ra, REGISTER rb, REGISTER rc);
 void segLoad(Seq_T stream, REGISTER ra, REGISTER rb, REGISTER rc);
 void segStore(Seq_T stream, REGISTER ra, REGISTER rb, REGISTER rc);
