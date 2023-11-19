@@ -34,5 +34,4 @@ SegmentID Mem_mapNew(Mem mem, uint32_t size);
 void Mem_mapFree(Mem mem, uint32_t segID);
 
 bool Mem_isInRange(Mem mem, uint32_t segID, uint32_t wordID);
-
 #endif

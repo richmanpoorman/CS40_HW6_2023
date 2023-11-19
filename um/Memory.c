@@ -74,7 +74,7 @@ void Mem_freeMemory(Mem *mem)
 
         Seq_free(&(memory -> nextSeenSegID));
         
-        FREE(*mem);
+        FREE(*mem); 
 }
 
 /*

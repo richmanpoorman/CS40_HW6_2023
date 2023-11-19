@@ -83,7 +83,7 @@ static inline void CPU_unmapSeg(CPU_State state, uint32_t rc);
 static inline void CPU_printOut(CPU_State state, uint32_t rc);
 static inline void CPU_readIn(CPU_State state, uint32_t rc);
 static inline void CPU_loadProgram(CPU_State state, uint32_t rb, uint32_t rc);
-static inline void CPU_loadValue(CPU_State state, uint32_t rL, uint32_t val);
+static inline void CPU_loadValue(CPU_State state, uint32_t instruction);
 
 
 /*
@@ -213,8 +213,6 @@ void executeFunction(CPU_State state)
         uint32_t ra = Bitpack_getu(instruction, registerIDSize, raLsb);
         uint32_t rb = Bitpack_getu(instruction, registerIDSize, rbLsb);
         uint32_t rc = Bitpack_getu(instruction, registerIDSize, rcLsb);
-        uint32_t rL = Bitpack_getu(instruction, registerIDSize, rLoad);
-        uint32_t loadVal = Bitpack_getu(instruction, loadSize, loadLsb);
         
         switch(instructionType) {
                 case CMOV:
@@ -270,7 +268,7 @@ void executeFunction(CPU_State state)
                 break;
 
                 case LOADVALUE:
-                CPU_loadValue(state, rL, loadVal);
+                CPU_loadValue(state, instruction);
                 break;
 
                 default:
@@ -549,15 +547,16 @@ static inline void CPU_loadProgram(CPU_State state, uint32_t rb, uint32_t rc)
  * Name      : CPU_loadValue
  * Purpose   : Loads a given value into rL 
  * Parameter : (CPU_State) state -- The computer state to alter (with register)
- *             (uint32_t)  rL    -- Register to load into
- *             (uint32_t)  val   -- The value to put into the register
  * Return    : None
- * Notes     : Alters the state of the CPU_State
+ * Notes     : Alters the state of the CPU_State;
+ *             Bitpacks inside (because of unique instruction set)
  */
-static inline void CPU_loadValue(CPU_State state, uint32_t rL, uint32_t val)
+static inline void CPU_loadValue(CPU_State state, uint32_t instruction)
 {
+        uint32_t rL = Bitpack_getu(instruction, registerIDSize, rLoad);
+        uint32_t loadVal = Bitpack_getu(instruction, loadSize, loadLsb);
         uint32_t *registers = state -> registers;
-        registers[rL] = val;
+        registers[rL] = loadVal;
 }
 
 #undef MAX_VALUE
