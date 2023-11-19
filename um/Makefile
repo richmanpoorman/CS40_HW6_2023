@@ -27,7 +27,7 @@ MODULES = Segment.o Memory.o CPU.o
 
 ############### Rules ###############
 
-all: um test
+all: um test writetests
 
 ## Compile step (.c files -> .o files)
 
@@ -37,6 +37,9 @@ all: um test
 
 ## Linking step (.o -> executable program)
 um: um.o $(MODULES)
+	$(CC) $(LDFLAGS) $^ -o $@ $(LDLIBS)
+
+writetests: umlabwrite.o umlab.o
 	$(CC) $(LDFLAGS) $^ -o $@ $(LDLIBS)
 
 test: test.o $(MODULES)

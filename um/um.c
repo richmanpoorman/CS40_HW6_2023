@@ -8,11 +8,17 @@ int main(int argc, char *argv[])
 {
         
 
-        assert(argc == 2);
+        if (argc != 2) {
+                fprintf(stderr, "Not given correct amount of inputs\n");
+                exit(EXIT_FAILURE);
+        }
         FILE *input   = stdin;
         FILE *output  = stdout;
         FILE *program = fopen(argv[1], "r");
-        assert(program != NULL);
+        if (program == NULL) {
+                fprintf(stderr, "Not given a accessible program file\n");
+                exit(EXIT_FAILURE);
+        }
 
         runProgram(input, output, program);
 
