@@ -14,6 +14,9 @@ extern void haltTest(Seq_T stream);
 extern void haltAfterTest(Seq_T stream);
 extern void addTest(Seq_T stream);
 extern void printSizeTest(Seq_T stream);
+extern void add_twoZerosTest(Seq_T stream);
+void add_twoNonzerosTest(Seq_T stream);
+void add_threeNumsTest(Seq_T sequence);
 
 static struct test_info {
         const char *name;
@@ -24,7 +27,10 @@ static struct test_info {
         {"HaltTest", haltTest},
         {"HaltTestExtra", haltAfterTest},
         {"AddTest", addTest},
-        {"PrintSizeTest", printSizeTest}
+        {"PrintSizeTest", printSizeTest},
+        {"add_twoZerosTest", add_twoZerosTest},
+        {"add_twoNonzerosTest", add_twoNonzerosTest},
+        {"add_threeNumsTest", add_threeNumsTest}
 };
 
   
