@@ -42,7 +42,7 @@ um: um.o $(MODULES)
 test: test.o $(MODULES)
 	$(CC) $(LDFLAGS) $^ -o $@ $(LDLIBS)
 
-makeTests: runTestMaker.o makeTests.o
+makeTests: runTestMaker.o makeTests.o testSuite2.o
 
 clean:
 	rm -f um *.o

@@ -10,13 +10,21 @@
 
 /* The array `tests` contains all unit tests for the lab. */
 
+extern void haltTest(Seq_T stream);
+extern void haltAfterTest(Seq_T stream);
+extern void addTest(Seq_T stream);
+extern void printSizeTest(Seq_T stream);
+
 static struct test_info {
         const char *name;
         /* writes instructions into sequence */
         void (*build_test)(Seq_T stream);
 } tests[] = {
         /* {"(NAME)", (FUNCTION(Seq_T stream))} */
-        NULL
+        {"HaltTest", haltTest},
+        {"HaltTestExtra", haltAfterTest},
+        {"AddTest", addTest},
+        {"PrintSizeTest", printSizeTest}
 };
 
   

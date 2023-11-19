@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include <seq.h>
+#include <stdio.h>
 
 
 typedef enum REGISTER {
