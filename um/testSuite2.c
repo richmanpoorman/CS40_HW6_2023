@@ -60,7 +60,7 @@ void printAllCharactersTest(Seq_T stream)
 
 /* BATCH 2 */
 
-void printAllCharactersTest(Seq_T stream)
+void printGivenCharsTest(Seq_T stream)
 {
         /*  creates r2 with all 1s (to compare with) */
         loadValue(stream, r2, 0x1ffffff);
