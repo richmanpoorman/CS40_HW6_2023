@@ -65,10 +65,10 @@ void mult_twoNonzerosTest(Seq_T sequence)
 
 void mult_threeNumsTest(Seq_T sequence) 
 {
-        loadValue(sequence, r1, 90);
-        loadValue(sequence, r2, 2);
+        loadValue(sequence, r1, 4);
+        loadValue(sequence, r2, 20);
         mult(sequence, r0, r1, r2);
-        loadValue(sequence, r3, 23);
+        loadValue(sequence, r3, 3);
         mult(sequence, r4, r0, r3);
         printOut(sequence, r4);
         halt(sequence); 
