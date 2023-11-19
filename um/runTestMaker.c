@@ -19,13 +19,13 @@ extern void add_twoZerosTest(Seq_T stream);
 extern void add_twoNonzerosTest(Seq_T stream);
 extern void add_threeNumsTest(Seq_T stream);
 extern void add_toSelfTest(Seq_T stream);
-extern void add_overflowTest(Seq_T stream);
+//extern void add_overflowTest(Seq_T stream);
 
 extern void mult_twoZerosTest(Seq_T stream);
 extern void mult_twoNonzerosTest(Seq_T stream);
 extern void mult_threeNumsTest(Seq_T stream);
 extern void mult_toSelfTest(Seq_T stream);
-extern void mult_overflowTest(Seq_T stream);
+//extern void mult_overflowTest(Seq_T stream);
 
 extern void div_evenIdentityTest(Seq_T stream);
 extern void div_oddIdentityTest(Seq_T stream);
@@ -51,12 +51,12 @@ const char *test_input; /* NULL if no input */
         {"add_twoNonzerosTest", NULL, add_twoNonzerosTest},
         {"add_threeNumsTest"  , NULL, add_threeNumsTest},
         {"add_toSelfTest", NULL, add_toSelfTest},
-        {"add_overflowTest", NULL, add_overflowTest},
+        //{"add_overflowTest", NULL, add_overflowTest},
         {"mult_twoZerosTest"   , NULL, mult_twoZerosTest},
         {"mult_twoNonzerosTest", NULL, mult_twoNonzerosTest},
         {"mult_threeNumsTest"  , NULL, mult_threeNumsTest},
         {"mult_toSelfTest", NULL, mult_toSelfTest},
-        {"mult_overflowTest", NULL, mult_overflowTest},
+        //{"mult_overflowTest", NULL, mult_overflowTest},
         {"div_evenIdentityTest", NULL, div_evenIdentityTest},
         {"div_oddIdentityTest", NULL, div_oddIdentityTest},
         {"div_evenByTwoTest", NULL, div_evenByTwoTest},

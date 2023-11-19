@@ -34,7 +34,7 @@ void add_threeNumsTest(Seq_T sequence)
         printOut(sequence, r4);
         halt(sequence); 
 }
-//have not been added yet
+
 void add_toSelfTest(Seq_T sequence) 
 {
         loadValue(sequence, r0, 77);
@@ -43,16 +43,7 @@ void add_toSelfTest(Seq_T sequence)
         halt(sequence); 
 }
 
-void add_overflowTest(Seq_T sequence) 
-{
-        uint32_t maxValue = 0;
-        maxValue = ~maxValue;
-        loadValue(sequence, r1, 77);
-        loadValue(sequence, r2, maxValue - 1);
-        add(sequence, r0, r1, r2);
-        printOut(sequence, r0);
-        halt(sequence); 
-}
+
 
 void mult_twoZerosTest(Seq_T sequence) 
 {
@@ -87,17 +78,6 @@ void mult_toSelfTest(Seq_T sequence)
 {
         loadValue(sequence, r0, 5);
         mult(sequence, r0, r0, r0);
-        printOut(sequence, r0);
-        halt(sequence); 
-}
-
-void mult_overflowTest(Seq_T sequence) 
-{
-        uint32_t maxValue = 0;
-        maxValue = ~maxValue;
-        loadValue(sequence, r1, 30);
-        loadValue(sequence, r2, maxValue - 1);
-        mult(sequence, r0, r1, r2);
         printOut(sequence, r0);
         halt(sequence); 
 }
@@ -147,6 +127,28 @@ void div_bySelfTest(Seq_T sequence)
 }
 
 /* no good naughty tests */
+void add_overflowTest(Seq_T sequence) 
+{
+        uint32_t maxValue = 0;
+        maxValue = ~maxValue;
+        loadValue(sequence, r1, 77);
+        loadValue(sequence, r2, maxValue - 1);
+        add(sequence, r0, r1, r2);
+        printOut(sequence, r0);
+        halt(sequence); 
+}
+
+void mult_overflowTest(Seq_T sequence) 
+{
+        uint32_t maxValue = 0;
+        maxValue = ~maxValue;
+        loadValue(sequence, r1, 30);
+        loadValue(sequence, r2, maxValue - 1);
+        mult(sequence, r0, r1, r2);
+        printOut(sequence, r0);
+        halt(sequence); 
+}
+
 void div_zeroTest(Seq_T sequence) 
 {
         loadValue(sequence, r1, 0);
