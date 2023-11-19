@@ -62,24 +62,20 @@ void printAllCharactersTest(Seq_T stream)
 
 void printGivenCharsTest(Seq_T stream)
 {
-        /*  creates r2 with all 1s (to compare with) */
-        loadValue(stream, r2, 0x1ffffff);
-        loadValue(stream, r3, 128);
-        mult(stream, r2, r2, r3);
-        add(stream, r2, r2, r3);
 
         /*  Creates the positions to jump to for the conditional moves */
         /*          r4 = normal, r5 = after loop, r6 = go back to the top */
-        loadValue(stream, r4, 12);
-        loadValue(stream, r5, 14);
-        loadValue(stream, r6, 8);
+        loadValue(stream, r4, 9);
+        loadValue(stream, r5, 11);
+        loadValue(stream, r6, 5);
         loadValue(stream, r7, 0);
+        loadValue(stream, r1, 1);
 
         /* Read the input... (jump back with r6) */
         readIn(stream, r0);
 
         /* Put the not r0 into r3 */
-        nand(stream, r3, r0, r0);
+        nand(stream, r3, r1, r1);
         
         /* If r0 was all 0s, then change the jump location to the end */
         cmove(stream, r4, r5, r3);

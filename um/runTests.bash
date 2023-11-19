@@ -4,6 +4,8 @@ TESTS=($(ls *.um | sed -e 's/\.um$//'))
 
 
 for test in "${TESTS[@]}"; do
+        echo TEST: $test
+        
         inputFile="/dev/null"
         if [ -f $test.0 ]; then
                 echo FOUND $test.0
@@ -11,8 +13,7 @@ for test in "${TESTS[@]}"; do
         fi 
         touch $test.1
         um $test.um < $inputFile > $test.1
-
-        echo TEST: $test
+        
         touch $test.testOut1
         ./um $test.um < $inputFile > $test.testOut1
         DIFF=$(diff $test.testOut1 $test.1)
