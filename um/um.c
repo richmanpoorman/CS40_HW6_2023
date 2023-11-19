@@ -6,8 +6,6 @@
 
 int main(int argc, char *argv[])
 {
-        
-
         if (argc != 2) {
                 fprintf(stderr, "Not given correct amount of inputs\n");
                 exit(EXIT_FAILURE);

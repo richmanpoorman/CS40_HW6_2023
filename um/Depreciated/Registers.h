@@ -11,7 +11,7 @@
 
 typedef struct Registers *Registers;
 
-void Registers_new();
+Registers Registers_new();
 
 void Registers_free(Registers *reg);
 

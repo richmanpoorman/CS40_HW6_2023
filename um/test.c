@@ -6,6 +6,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include "makeTests.h"
 #include "Segment.h"
 #include "Memory.h"
 

@@ -27,7 +27,7 @@ MODULES = Segment.o Memory.o CPU.o
 
 ############### Rules ###############
 
-all: um test
+all: um test makeTests
 
 ## Compile step (.c files -> .o files)
 
@@ -41,6 +41,8 @@ um: um.o $(MODULES)
 
 test: test.o $(MODULES)
 	$(CC) $(LDFLAGS) $^ -o $@ $(LDLIBS)
+
+makeTests: runTestMaker.o makeTests.o
 
 clean:
 	rm -f um *.o
