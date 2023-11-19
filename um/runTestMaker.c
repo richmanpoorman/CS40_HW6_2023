@@ -34,7 +34,7 @@ extern void div_oddIdentityTest(Seq_T sequence);
 extern void div_evenByTwoTest(Seq_T sequence);
 extern void div_oddByTwoTest(Seq_T sequence);
 
-extern void printAllCharactersTest(Seq_T stream);
+extern void printGivenCharsTest(Seq_T stream);
 
 static struct test_info {
         const char *name;
