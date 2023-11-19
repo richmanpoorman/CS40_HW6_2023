@@ -23,16 +23,16 @@ extern void add_threeNumsTest(Seq_T stream);
 extern void add_toSelfTest(Seq_T stream);
 extern void add_overflowTest(Seq_T stream);
 
-extern void mult_twoZerosTest(Seq_T sequence);
-extern void mult_twoNonzerosTest(Seq_T sequence);
-extern void mult_threeNumsTest(Seq_T sequence);
+extern void mult_twoZerosTest(Seq_T stream);
+extern void mult_twoNonzerosTest(Seq_T stream);
+extern void mult_threeNumsTest(Seq_T stream);
 extern void mult_toSelfTest(Seq_T stream);
 extern void mult_overflowTest(Seq_T stream);
 
-extern void div_evenIdentityTest(Seq_T sequence);
-extern void div_oddIdentityTest(Seq_T sequence);
-extern void div_evenByTwoTest(Seq_T sequence);
-extern void div_oddByTwoTest(Seq_T sequence);
+extern void div_evenIdentityTest(Seq_T stream);
+extern void div_oddIdentityTest(Seq_T stream);
+extern void div_evenByTwoTest(Seq_T stream);
+extern void div_oddByTwoTest(Seq_T stream);
 
 extern void printGivenCharsTest(Seq_T stream);
 

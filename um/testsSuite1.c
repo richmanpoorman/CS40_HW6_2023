@@ -48,7 +48,7 @@ void add_overflowTest(Seq_T sequence)
         uint32_t maxValue = 0;
         maxValue = ~maxValue;
         loadValue(sequence, r1, 77);
-        loadValue(sequence, r2, maxValue - 1)
+        loadValue(sequence, r2, maxValue - 1);
         add(sequence, r0, r1, r2);
         printOut(sequence, r0);
         halt(sequence); 
