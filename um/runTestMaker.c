@@ -19,9 +19,25 @@ extern void add_twoNonzerosTest(Seq_T stream);
 extern void add_threeNumsTest(Seq_T sequence);
 extern void printAllCharactersTest(Seq_T stream);
 
+extern void add_threeNumsTest(Seq_T stream);
+extern void add_toSelfTest(Seq_T stream);
+extern void add_overflowTest(Seq_T stream);
+
+extern void mult_twoZerosTest(Seq_T sequence);
+extern void mult_twoNonzerosTest(Seq_T sequence);
+extern void mult_threeNumsTest(Seq_T sequence);
+extern void mult_toSelfTest(Seq_T stream);
+extern void mult_overflowTest(Seq_T stream);
+
+extern void div_evenIdentityTest(Seq_T sequence);
+extern void div_oddIdentityTest(Seq_T sequence);
+extern void div_evenByTwoTest(Seq_T sequence);
+extern void div_oddByTwoTest(Seq_T sequence);
+
+
 static struct test_info {
         const char *name;
-        const char *test_input; /* NULL if no input */
+const char *test_input; /* NULL if no input */
         /* writes instructions into sequence */
         void (*build_test)(Seq_T stream);
 } tests[] = {
@@ -89,10 +105,10 @@ static void write_test_files(struct test_info *test)
         Um_write_sequence(binary, instructions);
         Seq_free(&instructions);
         fclose(binary);
-        
+         
         write_or_remove_file(Fmt_string("%s.0", test->name),
                              test->test_input);
-        /*
+/*
         write_or_remove_file(Fmt_string("%s.1", test->name),
                              test->expected_output);
          */
@@ -111,7 +127,7 @@ static void write_or_remove_file(char *path, const char *contents)
         }
         free(path);
 }
-
+ 
 static FILE *open_and_free_pathname(char *path)
 {
         FILE *fp = fopen(path, "wb");
