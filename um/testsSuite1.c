@@ -126,6 +126,27 @@ void div_bySelfTest(Seq_T sequence)
         halt(sequence); 
 }
 
+void cmove_moveTest(Seq_T sequence) 
+{
+        loadValue(sequence, r0, 50);
+        loadValue(sequence, r1, 100);
+        loadValue(sequence, r2, 0);
+        cmove(sequence, r0, r1, r2);
+        printOut(sequence, r0);
+        halt(sequence); 
+}
+
+void cmove_stayTest(Seq_T sequence) 
+{
+        loadValue(sequence, r0, 50);
+        loadValue(sequence, r1, 100);
+        loadValue(sequence, r2, 200);
+        cmove(sequence, r0, r1, r2);
+        printOut(sequence, r0);
+        halt(sequence); 
+}
+
+
 /* no good naughty tests */
 void add_overflowTest(Seq_T sequence) 
 {
@@ -158,3 +179,10 @@ void div_zeroTest(Seq_T sequence)
         halt(sequence); 
 }
 
+void evilHaltTest(Seq_T sequence) 
+{
+        loadValue(sequence, r1, 0);
+        loadValue(sequence, r2, 0);
+        add(sequence, r0, r1, r2);
+        printOut(sequence, r0);
+}

@@ -36,6 +36,11 @@ extern void div_bySelfTest(Seq_T stream);
 extern void printAllCharactersTest(Seq_T stream);
 extern void printGivenCharsTest(Seq_T stream);
 
+//extern void evilHaltTest(Seq_T stream);
+
+extern void cmove_moveTest(Seq_T stream);
+extern void cmove_stayTest(Seq_T stream);
+
 static struct test_info {
         const char *name;
 const char *test_input; /* NULL if no input */
@@ -64,6 +69,9 @@ const char *test_input; /* NULL if no input */
         {"div_bySelfTest", NULL, div_bySelfTest},
         {"printAllCharsTest"  , NULL, printAllCharactersTest},
         {"printURandom"       , NULL, printGivenCharsTest},
+        {"cmove_moveTest", NULL, cmove_moveTest},
+        {"cmove_stayTest", NULL, cmove_stayTest}
+        //{"evilHaltTest", NULL, evilHaltTest}
         /* copy in files */
 };
 
