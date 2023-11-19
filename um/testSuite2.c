@@ -34,7 +34,7 @@ void addTest(Seq_T stream)
 {
         loadValue(stream, r0, 1);
         loadValue(stream, r1, 2);
-        add(stream, r0, r1, r2);
+        add(stream, r2, r1, r0);
         printOut(stream, r2);
         halt(stream);
 }
@@ -43,8 +43,16 @@ void printSizeTest(Seq_T stream)
 {
         loadValue(stream, r0, 48);
         loadValue(stream, r1, 6);
-        add(stream, r0, r1, r2);
-        printOut(stream, r3);
+        add(stream, r2, r1, r0);
+        printOut(stream, r2);
         halt(stream);
 }
 
+void printAllCharactersTest(Seq_T stream)
+{
+        for (int i = 0; i < 255; i++) {
+                loadValue(stream, i % 8, i);
+                printOut(stream, i % 8);
+        }
+        halt(stream);
+}

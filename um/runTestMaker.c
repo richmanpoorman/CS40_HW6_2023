@@ -15,22 +15,25 @@ extern void haltAfterTest(Seq_T stream);
 extern void addTest(Seq_T stream);
 extern void printSizeTest(Seq_T stream);
 extern void add_twoZerosTest(Seq_T stream);
-void add_twoNonzerosTest(Seq_T stream);
-void add_threeNumsTest(Seq_T sequence);
+extern void add_twoNonzerosTest(Seq_T stream);
+extern void add_threeNumsTest(Seq_T sequence);
+extern void printAllCharactersTest(Seq_T stream);
 
 static struct test_info {
         const char *name;
+        const char *test_input; /* NULL if no input */
         /* writes instructions into sequence */
         void (*build_test)(Seq_T stream);
 } tests[] = {
         /* {"(NAME)", (FUNCTION(Seq_T stream))} */
-        {"HaltTest", haltTest},
-        {"HaltTestExtra", haltAfterTest},
-        {"AddTest", addTest},
-        {"PrintSizeTest", printSizeTest},
-        {"add_twoZerosTest", add_twoZerosTest},
-        {"add_twoNonzerosTest", add_twoNonzerosTest},
-        {"add_threeNumsTest", add_threeNumsTest}
+        {"HaltTest"           , NULL, haltTest},
+        {"HaltTestExtra"      , NULL, haltAfterTest},
+        {"AddTest"            , NULL, addTest},
+        {"PrintSizeTest"      , NULL, printSizeTest},
+        {"add_twoZerosTest"   , NULL, add_twoZerosTest},
+        {"add_twoNonzerosTest", NULL, add_twoNonzerosTest},
+        {"add_threeNumsTest"  , NULL, add_threeNumsTest},
+        {"printAllCharsTest"  , NULL, printAllCharactersTest}
 };
 
   
@@ -46,7 +49,7 @@ static FILE *open_and_free_pathname(char *path);
  * if contents is NULL or empty, remove the given 'path', 
  * otherwise write 'contents' into 'path'.  Either way, free 'path'.
  */
-/* static void write_or_remove_file(char *path, const char *contents); */
+static void write_or_remove_file(char *path, const char *contents);
 
 static void write_test_files(struct test_info *test);
 
@@ -86,15 +89,15 @@ static void write_test_files(struct test_info *test)
         Um_write_sequence(binary, instructions);
         Seq_free(&instructions);
         fclose(binary);
-        /* 
+        
         write_or_remove_file(Fmt_string("%s.0", test->name),
                              test->test_input);
+        /*
         write_or_remove_file(Fmt_string("%s.1", test->name),
                              test->expected_output);
          */
 }
 
-/* 
 static void write_or_remove_file(char *path, const char *contents)
 {
         if (contents == NULL || *contents == '\0') {
@@ -108,7 +111,6 @@ static void write_or_remove_file(char *path, const char *contents)
         }
         free(path);
 }
- */
 
 static FILE *open_and_free_pathname(char *path)
 {

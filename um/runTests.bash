@@ -17,10 +17,13 @@ for test in "${TESTS[@]}"; do
         ./um $test.um < $inputFile > $test.testOut1
         DIFF=$(diff $test.testOut1 $test.1)
         if [ "$DIFF" != "" ]; then 
-                echo TEST FAILED: 
+                echo "    TEST FAILED: "
                 echo $DIFF
         else 
-                echo TEST PASSED!
+                echo "    TEST PASSED:"
+                cat -v $test.testOut1
+                echo
         fi
         rm $test.testOut1
+        echo
 done 
