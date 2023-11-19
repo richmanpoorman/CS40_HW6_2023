@@ -2,6 +2,9 @@
 shopt -s nullglob
 TESTS=($(ls *.um | sed -e 's/\.um$//'))
 
+make
+
+./makeTests
 
 for test in "${TESTS[@]}"; do
         echo TEST: $test
