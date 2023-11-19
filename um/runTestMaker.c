@@ -34,6 +34,7 @@ extern void div_oddIdentityTest(Seq_T sequence);
 extern void div_evenByTwoTest(Seq_T sequence);
 extern void div_oddByTwoTest(Seq_T sequence);
 
+extern void printAllCharactersTest(Seq_T stream);
 
 static struct test_info {
         const char *name;
@@ -49,7 +50,8 @@ const char *test_input; /* NULL if no input */
         {"add_twoZerosTest"   , NULL, add_twoZerosTest},
         {"add_twoNonzerosTest", NULL, add_twoNonzerosTest},
         {"add_threeNumsTest"  , NULL, add_threeNumsTest},
-        {"printAllCharsTest"  , NULL, printAllCharactersTest}
+        {"printAllCharsTest"  , NULL, printAllCharactersTest},
+        {"printURandom"       , NULL, printGivenCharsTest} /* copy in files */
 };
 
   
