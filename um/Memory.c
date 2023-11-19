@@ -183,6 +183,7 @@ void Mem_mapFree(Mem mem, uint32_t segID)
         assert(mem != NULL && segID < (uint32_t)Seq_length(mem -> segments));
         Segment seg = Seq_get(mem -> segments, segID);
         Segment_free(&seg);
+        Seq_put(mem -> segments, segID, NULL);
         Seq_addhi(mem -> nextSeenSegID, (void *)(uintptr_t)segID);
 }
 

@@ -612,7 +612,7 @@ bool memMakeMaxSegmentsTest()
  */
 bool memCheckZeroSegmentsTest()
 {
-        
+        return true;
 }
 
 
