@@ -63,11 +63,12 @@ void Mem_freeMemory(Mem *mem)
         Mem memory = *mem;
 
         Seq_T segments = memory -> segments;
+        
         while (Seq_length(segments) > 0) {
-                Segment seg = (Segment) Seq_remlo(segments);
+                Segment seg = Seq_remlo(segments);
                 if (seg != NULL) {
                         Segment_free(&seg);
-                }   
+                }
         }
         Seq_free(&(memory -> segments));
 

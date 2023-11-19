@@ -542,7 +542,7 @@ static inline void CPU_loadProgram(CPU_State state, uint32_t rb, uint32_t rc)
 
         Segment seg  = Mem_getSegment(mem, registers[rb]);
         Segment copy = Segment_copy(seg);
-        Mem_setSegment(mem, registers[rb], copy);
+        Mem_setSegment(mem, 0, copy);
 }
 
 /*

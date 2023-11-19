@@ -1,4 +1,4 @@
-#include <stdio.h>
+#include <stdlib.h>
 #include <stdint.h>
 #include <mem.h>
 #include <assert.h>
@@ -35,7 +35,6 @@ Segment Segment_new(uint32_t size)
                 seg -> words = NULL;
         } 
         
-
         return seg;
 }
 
@@ -72,12 +71,14 @@ Segment Segment_copy(Segment seg)
 void Segment_free(Segment *seg)
 {
         assert(seg != NULL && *seg != NULL);
-        if ((*seg) -> words != NULL) {
-                FREE((*seg) -> words);
+        
+        Segment segment = *seg;
+        
+        if (segment -> words != NULL) {
+                FREE(segment -> words);
         }
-        FREE(*seg);
 
-        *seg = NULL;
+        FREE(*seg);
 }
 
 /*
@@ -104,7 +105,7 @@ uint32_t Segment_size(Segment seg)
  */
 Word Segment_getWord(Segment seg, uint32_t position)
 {
-        assert(seg != NULL && position < seg -> size);
+        assert(seg != NULL && seg -> words != NULL && position < seg -> size);
         return seg -> words[position];
 }
 
@@ -120,6 +121,6 @@ Word Segment_getWord(Segment seg, uint32_t position)
  */
 void Segment_setWord(Segment seg, uint32_t position, Word word)
 {
-        assert(seg != NULL && position < seg -> size);
+        assert(seg != NULL && seg -> words != NULL && position < seg -> size);
         seg -> words[position] = word;
 }
