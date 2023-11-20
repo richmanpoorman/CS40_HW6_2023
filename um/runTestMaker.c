@@ -35,6 +35,8 @@ extern void div_bySelfTest(Seq_T stream);
 
 extern void printAllCharactersTest(Seq_T stream);
 extern void printGivenCharsTest(Seq_T stream);
+extern void jumpOnZeroTest(Seq_T stream);
+extern void printLetters(Seq_T stream);
 
 //extern void evilHaltTest(Seq_T stream);
 
@@ -70,7 +72,9 @@ const char *test_input; /* NULL if no input */
         {"printAllCharsTest"  , NULL, printAllCharactersTest},
         {"printURandom"       , NULL, printGivenCharsTest},
         {"cmove_moveTest", NULL, cmove_moveTest},
-        {"cmove_stayTest", NULL, cmove_stayTest}
+        {"cmove_stayTest", NULL, cmove_stayTest},
+        {"jumpOnZero", NULL, jumpOnZeroTest},
+        {"printLetters", NULL, printLetters}
         //{"evilHaltTest", NULL, evilHaltTest}
         /* copy in files */
 };
