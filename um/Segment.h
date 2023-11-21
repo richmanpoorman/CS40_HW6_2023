@@ -1,5 +1,5 @@
 /* 
- *   Name       : Segment.c
+ *   Name       : Segment.h
  *   Assignment : CS40 Homework 6 (um)
  *   Purpose    : Module representing a single segment of the UM's memory,
  *                supports setting and getting specific words of a segment
