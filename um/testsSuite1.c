@@ -153,8 +153,8 @@ void div_bySelfTest(Seq_T sequence)
 }
 
 /* Cmoves based on a register that contains 0
-   Expected result: Cmove proceeds, r0 contains 100*/
-void cmove_moveTest(Seq_T sequence) 
+   Expected result: Cmove does not proceed, r0 contains 50*/
+void cmove_stayTest(Seq_T sequence) 
 {
         loadValue(sequence, r0, 50);
         loadValue(sequence, r1, 100);
@@ -165,8 +165,8 @@ void cmove_moveTest(Seq_T sequence)
 }
 
 /* Cmoves based on a register that does not contain 0
-   Expected result: Cmove does not proceed, r0 contains 50*/
-void cmove_stayTest(Seq_T sequence) 
+   Expected result: Cmove does proceeds, r0 contains 100*/
+void cmove_moveTest(Seq_T sequence) 
 {
         loadValue(sequence, r0, 50);
         loadValue(sequence, r1, 100);

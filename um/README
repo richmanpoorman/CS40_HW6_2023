@@ -34,6 +34,15 @@ Architecture Description:
         specific segments.
         
 Unit Tests:
+Halt-- These verify that halt is functioning properly
+        - haltTest: Halts
+        - haltAfterTest: Halts, with some commands after that print
+        if halt did not completely halt computation
+Load Value-- These verify that load value is functioning properly
+        - addTest: Loads two values, adds them together, 
+        then checks the result
+        - printSizeTest: Loads two values, adds them together, 
+        then checks the result via printing/output
 Add-- These verify that add is functioning properly
         - add_twoZerosTest: Add two zeros together, then check the 
         result is zero
@@ -53,7 +62,25 @@ Multiply-- These verify that multiply is functioning properly
 Divide-- These verify that divide is functioning properly
         - div_evenIdentityTest: Divide an even number by 1, then check 
         that the result is the same number
-
+        - div_oddIdentityTest: Divide an odd number by 1, then check 
+        that the result is the same number
+        - div_evenByTwoTest: Divide an even number by 2, then check the result
+        - div_oddByTwoTest: Divide an odd number by 2, then check the result
+        - div_bySelfTest: Divide a register by itself, then check the result 
+        is 1
+Cmove-- These verify that cmove is functioning properly
+        - cmove_moveTest: Cmoves based on a condition register that does not
+        contain 0, then checks that the cmove occured via checking the target 
+        register's value
+        - cmove_stayTest: Cmoves based on a condition register that contains 0,
+        then checks that the cmove did not occur via checking the target 
+        register's value
+Output-- These verify that output is functioning properly
+        - printAllCharactersTest: Prints out 255 characters without jumps
+        - jumpOnZeroTest: Prints all 255 characters using an UM "loop"
+        - printLetters: Prints a...z then A...Z
+Input-- These verify that input is functioning properly
+        - printGivenCharsTest: 
 
 Timing Our UM:
 It takes our UM 10.61 seconds to perform 85070522 instructions 
