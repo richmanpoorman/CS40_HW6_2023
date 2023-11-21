@@ -33,7 +33,7 @@ Architecture Description:
         of the segment. Segment is used by Memory to manipulate
         specific segments.
         
-Unit Tests:
+Unit Tests (UMTESTS):
 Halt-- These verify that halt is functioning properly
         - haltTest: Halts
         - haltAfterTest: Halts, with some commands after that print
@@ -83,6 +83,8 @@ Input-- These verify that input is functioning properly
         - printGivenCharsTest: Tries to print back all of the data inputted
         - takeInputTest: Tries to take the input "hi!" and responds "ok" 
         if received
+
+Additional tests (on segmented memory) can be found in test.c
 
 Timing Our UM:
 It takes our UM 10.61 seconds to perform 85070522 instructions 
