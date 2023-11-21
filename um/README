@@ -38,6 +38,9 @@ Halt-- These verify that halt is functioning properly
         - haltTest: Halts
         - haltAfterTest: Halts, with some commands after that print
         if halt did not completely halt computation
+        - instructionsBeforeHalt: Runs some instructions, then halts, with
+        some commands following the halt that print if the halt did not 
+        completely halt computation
 Load Value-- These verify that load value is functioning properly
         - addTest: Loads two values, adds them together, 
         then checks the result
@@ -83,8 +86,16 @@ Input-- These verify that input is functioning properly
         - printGivenCharsTest: Tries to print back all of the data inputted
         - takeInputTest: Tries to take the input "hi!" and responds "ok" 
         if received
+Nand-- These verify that nand is functioning properly
+        - nandTest: Checks possible nands between 0 and 0xffffffff,
+        printing YAY if the nands produce the correct value and BAD otherwise
+Map/Unmap Seg-- These verify that memory mapping and unmapping are
+functioning properly
+        - segTest: Creates new segments of size 0 and 4, 
+        set/get from size 4, and frees
 
-Additional tests (on segmented memory) can be found in test.c
+Additional tests (on reading and writing segmented memory) can be 
+found in test.c
 
 Timing Our UM:
 It takes our UM 10.61 seconds to perform 85070522 instructions 
