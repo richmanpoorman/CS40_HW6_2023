@@ -1,12 +1,12 @@
 /* 
- *   Name       : CPU.c
+ *   Name       : CPU.h
  *   Assignment : CS40 Homework 6 (um)
  *   Purpose    : Module responsible for performs the arithmetic and
  *                logical operations of the Universal Machine; fetches,
  *                decodes, and executes instructions from memory
  *   Editors    : Matthew Wong (mwong14), Ivi Fung (sfung02)
  */
- 
+
 #include <stdio.h>
 
 #ifndef UM_CPU_H_
