@@ -9,11 +9,12 @@ void TEST(Seq_T stream)
 */
 
 /* BATCH 1 */
+/* Halts */
 void haltTest(Seq_T stream)
 {
         halt(stream);
 }
-
+/* Checks it only runs halt */
 void haltAfterTest(Seq_T stream)
 {
         halt(stream);
@@ -30,7 +31,7 @@ void haltAfterTest(Seq_T stream)
         loadValue(stream, r1, '\n');
         printOut(stream, r1);
 }
-
+/* Adds two numbers together */
 void addTest(Seq_T stream)
 {
         loadValue(stream, r0, 1);
@@ -40,6 +41,7 @@ void addTest(Seq_T stream)
         halt(stream);
 }
 
+/* Prints out a 6 (as 48 + 6 = 56, which is '6') */
 void printSizeTest(Seq_T stream)
 {
         loadValue(stream, r0, 48);
@@ -49,6 +51,7 @@ void printSizeTest(Seq_T stream)
         halt(stream);
 }
 
+/* Print out 255 characters (without jumps) */
 void printAllCharactersTest(Seq_T stream)
 {
         for (int i = 0; i < 255; i++) {
@@ -59,6 +62,7 @@ void printAllCharactersTest(Seq_T stream)
 }
 
 /* BATCH 2 */
+/* Prints all 255 characters using an UM "loop"*/
 void jumpOnZeroTest(Seq_T stream)
 {
         /* r7 has 0, r6 has -1 */
@@ -81,6 +85,7 @@ void jumpOnZeroTest(Seq_T stream)
         loadProgram(stream, r7, r3);
 }
 
+/* Prints a...z then A...Z */
 void printLetters(Seq_T stream)
 {
         loadValue(stream, r0, 97);
@@ -127,28 +132,66 @@ void printLetters(Seq_T stream)
         halt(stream);
 }
 
+/* Tries to read back all of the data */
 void printGivenCharsTest(Seq_T stream)
 {
+        loadValue(stream, r7, 0) /* 0 */
+        loadValue(stream, r6, 2); /* Jump back up */
 
-        /*  Creates the positions to jump to for the conditional moves */
-        /*          r4 = normal, r5 = after loop, r6 = go back to the top */
-        loadValue(stream, r4, 9);
-        loadValue(stream, r5, 11);
-        loadValue(stream, r6, 5);
-        loadValue(stream, r7, 0);
-        loadValue(stream, r1, 1);
-
-        /* Read the input... (jump back with r6) */
         readIn(stream, r0);
-
-        /* Put the not r0 into r3 */
-        add(stream, r3, r0, r1);
-        
-        /* If r0 was all 0s, then change the jump location to the end */
-        cmove(stream, r4, r5, r3);
-        loadProgram(stream, r7, r4);
+        nand(stream, r1, r0, r0);
+        loadValue(stream, r2, 7); /* Jump to halt */
+        cmove(stream, r2, r6, r1);
+        loadProgram(stream, r7, r2);
         halt(stream);
-        printOut(stream, r0);
-        loadProgram(stream, r7, r6);
         
 }
+/* Batch 3 */
+/* Tries to take "hi!" and responds "ok" if done*/
+void takeInputTest(Seq_T stream)
+{       
+        loadValue(stream, r2, 28); /* Halt instruction */
+        loadValue(stream, r4, 0); /* r4 = 0 */
+        loadValue(stream, r5, 1); /* r5 = 1 */
+
+        /* -('H') */
+        loadValue(stream, r0, 'H'); 
+        nand(stream, r0, r0, r0);
+        add(stream, r0, r0, r5);
+
+        input(stream, r1);
+        
+        loadValue(stream, r3, 10); 
+        cmove(stream, r3, r2, r0);
+        loadProgram(stream, r4, r3);
+
+        /* -('i') */
+        loadValue(stream, r0, 'i'); 
+        nand(stream, r0, r0, r0);
+        add(stream, r0, r0, r5);
+
+        input(stream, r1);
+        
+        loadValue(stream, r3, 17); 
+        cmove(stream, r3, r2, r0);
+        loadProgram(stream, r4, r3);
+
+        /* -('!') */
+        loadValue(stream, r0, '!'); 
+        nand(stream, r0, r0, r0);
+        add(stream, r0, r0, r5);
+
+        input(stream, r1);
+        
+        loadValue(stream, r3, 24); 
+        cmove(stream, r3, r2, r0);
+        loadProgram(stream, r4, r3);
+
+        loadValue(stream, r0, 'o'); 
+        printOut(stream, r0);
+        loadValue(stream, r0, 'k'); 
+        printOut(stream, r0);
+        
+        halt(stream);
+}
+
