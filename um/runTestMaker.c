@@ -48,6 +48,7 @@ extern void instructionsBeforeHalt(Seq_T stream);
 extern void nandTest(Seq_T stream);
 extern void segTest(Seq_T stream);
 
+extern void loadDiffSegTest(Seq_T stream);
 
 static struct test_info {
         const char *name;
@@ -92,7 +93,8 @@ const char *test_input; /* NULL if no input */
         {"readNothing", NULL, printGivenCharsTest},
         {"readEndLine", "There\nonce\nwas\na\nman\n", printGivenCharsTest},
         {"readAllChars", NULL, printGivenCharsTest},  /* MADE CUSTOM FILE */
-        {"readRandomChars", NULL, printGivenCharsTest} /* MADE CUSTOM FILE */
+        {"readRandomChars", NULL, printGivenCharsTest}, /* MADE CUSTOM FILE */
+        {"loadDiffSegTest", NULL, loadDiffSegTest}
 };
 
   

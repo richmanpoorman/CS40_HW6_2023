@@ -299,3 +299,74 @@ void segTest(Seq_T stream)
         halt(stream);
 }
 
+
+/* Loads a brand new segment into the stream */
+void loadDiffSegTest(Seq_T stream)
+{
+        loadValue(stream, r1, 5);
+        mapSeg(stream, r1, r2);
+        loadValue(stream, r3, 10); /* Print out op code */
+        /* Multiply twice to move into opcode spot */
+        loadValue(stream, r4, 0x4000);
+
+        /* Load print letter into segment */
+        mult(stream, r0, r3, r4);
+        mult(stream, r0, r0, r4);
+
+        loadValue(stream, r5, 'G');
+        add(stream, r0, r0, r5);
+        loadValue(stream, r5, 0);
+        segStore(stream, r2, r5, r0);
+
+        /* Load print letter into segment */
+        mult(stream, r0, r3, r4);
+        mult(stream, r0, r0, r4);
+
+        loadValue(stream, r5, 'o');
+        add(stream, r0, r0, r5);
+        loadValue(stream, r5, 1);
+        segStore(stream, r2, r5, r0);
+
+        /* Load print letter into segment */
+        mult(stream, r0, r3, r4);
+        mult(stream, r0, r0, r4);
+
+        loadValue(stream, r5, 'o');
+        add(stream, r0, r0, r5);
+        loadValue(stream, r5, 2);
+        segStore(stream, r2, r5, r0);
+
+        /* Load print letter into segment */
+        mult(stream, r0, r3, r4);
+        mult(stream, r0, r0, r4);
+
+        loadValue(stream, r5, 'd');
+        add(stream, r0, r0, r5);
+        loadValue(stream, r5, 3);
+        segStore(stream, r2, r5, r0);
+
+        /* Add halt */
+        loadValue(stream, r0, 7);
+        mult(stream, r0, r0, r4);
+        mult(stream, r0, r0, r4);
+        loadValue(stream, r5, 4);
+        segStore(stream, r2, r5, r0);
+
+        loadValue(stream, r0, 0);
+        
+        /* Overwrite rest of program */
+        loadProgram(stream, r2, r0);
+
+        /* Should NOT print */
+        loadValue(stream, r0, 'B');
+        printOut(stream, r0);
+
+        loadValue(stream, r0, 'A');
+        printOut(stream, r0);
+        
+        loadValue(stream, r0, 'D');
+        printOut(stream, r0);
+        
+        halt(stream);
+        
+}
