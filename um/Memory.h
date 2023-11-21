@@ -1,5 +1,5 @@
 /* 
- *   Name       : Memory.c
+ *   Name       : Memory.h
  *   Assignment : CS40 Homework 6 (um)
  *   Purpose    : Module representing the segmented memory of our UM; 
  *                supports setting and getting words and segments of memory
