@@ -87,6 +87,8 @@ Input-- These verify that input is functioning properly
         - printGivenCharsTest: Tries to print back all of the data inputted
         - takeInputTest: Tries to take the input "hi!" and responds "ok" 
         if received
+        - readAllChars: Reads all possible 256 characters and prints them out
+        - readRandomChars: Reads a set of random characters and prints them out
 Nand-- These verify that nand is functioning properly
         - nandTest: Checks possible nands between 0 and 0xffffffff,
         printing YAY if the nands produce the correct value and BAD otherwise
