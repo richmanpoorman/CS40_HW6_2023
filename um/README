@@ -33,6 +33,7 @@ Architecture Description:
         (in words) of the segment and can get and set specific words
         of the segment. Segment is used by Memory to manipulate
         specific segments.
+        - um: Just runs the program, opening up the correct input and output.
         
 Unit Tests (UMTESTS):
 Halt-- These verify that halt is functioning properly
