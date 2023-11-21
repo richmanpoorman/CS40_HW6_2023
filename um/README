@@ -80,7 +80,9 @@ Output-- These verify that output is functioning properly
         - jumpOnZeroTest: Prints all 255 characters using an UM "loop"
         - printLetters: Prints a...z then A...Z
 Input-- These verify that input is functioning properly
-        - printGivenCharsTest: 
+        - printGivenCharsTest: Tries to print back all of the data inputted
+        - takeInputTest: Tries to take the input "hi!" and responds "ok" 
+        if received
 
 Timing Our UM:
 It takes our UM 10.61 seconds to perform 85070522 instructions 
