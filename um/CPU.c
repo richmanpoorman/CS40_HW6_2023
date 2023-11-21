@@ -1,3 +1,12 @@
+/* 
+ *   Name       : CPU.c
+ *   Assignment : CS40 Homework 6 (um)
+ *   Purpose    : Module responsible for performs the arithmetic and
+ *                logical operations of the Universal Machine; fetches,
+ *                decodes, and executes instructions from memory
+ *   Editors    : Matthew Wong (mwong14), Ivi Fung (sfung02)
+ */
+
 #include "Memory.h"
 #include <stdint.h>
 #include <mem.h>
@@ -85,7 +94,6 @@ static inline void CPU_readIn(CPU_State state, uint32_t rc);
 static inline void CPU_loadProgram(CPU_State state, uint32_t rb, uint32_t rc);
 static inline void CPU_loadValue(CPU_State state, uint32_t instruction);
 
-
 /*
  * Name      : runProgram
  * Purpose   : Emulates the Universal Machine with the given program and 
@@ -134,9 +142,8 @@ CPU_State CPU_new(FILE *input, FILE *output) {
 /*
  * Name      : CPU_free
  * Purpose   : Frees the CPU
- * Parameter : (FILE *) input   -- The input stream to read input from
- *             (FILE *) output  -- The output stream to write output to
- * Return    : (CPU_State) The state of the new machine
+ * Parameter : (CPU_State *) state -- The CPU_State to free
+ * Return    : None
  * Notes     : Keeps track of the input and output files
  */
 void CPU_free(CPU_State *state) {
@@ -325,7 +332,7 @@ static inline void CPU_cmove(CPU_State state, uint32_t ra, uint32_t rb,
 
 /*
  * Name      : CPU_segLoad
- * Purpose   : Loads the word from memory in segment rb word rc into ra
+ * Purpose   : Loads the word from memory in segment rb, word rc into ra
  * Parameter : (CPU_State) state -- The computer state to alter (with register)
  *             (uint32_t)  ra    -- Register A
  *             (uint32_t)  rb    -- Register B
@@ -343,7 +350,7 @@ static inline void CPU_segLoad(CPU_State state, uint32_t ra, uint32_t rb,
 
 /*
  * Name      : CPU_segStore
- * Purpose   : Stores rc into segment ra word rb
+ * Purpose   : Stores rc into segment ra, word rb
  * Parameter : (CPU_State) state -- The computer state to alter (with register)
  *             (uint32_t)  ra    -- Register A
  *             (uint32_t)  rb    -- Register B

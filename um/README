@@ -19,8 +19,9 @@ Architecture Description:
         fetches, decodes, and executes instructions-- writing to
         and accessing both the registers and segmented memory as needed. 
         CPU knows the values stored in the UM's registers, the 
-        location pointed to by the 32-bit program counter, and the
-        names of input and ouput files for I/O.
+        location pointed to by the 32-bit program counter, the
+        names of input and ouput files for I/O, and the list of possible
+        instructions our machine can execute.
         - Memory: This module represents the main segmented memory, for 
         both getting and setting values. Memory knows which segments
         are currently mapped and unmapped, as well as which previously

@@ -1,3 +1,11 @@
+/* 
+ *   Name       : Segment.c
+ *   Assignment : CS40 Homework 6 (um)
+ *   Purpose    : Module representing a single segment of the UM's memory,
+ *                supports setting and getting specific words of a segment
+ *   Editors    : Matthew Wong (mwong14), Ivi Fung (sfung02)
+ */
+
 #include <stdlib.h>
 #include <stdint.h>
 #include <mem.h>

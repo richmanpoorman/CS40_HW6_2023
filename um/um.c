@@ -1,3 +1,10 @@
+/* 
+ *   Name       : um.c
+ *   Assignment : CS40 Homework 6 (um)
+ *   Purpose    : Driver file for our UM implementation
+ *   Editors    : Matthew Wong (mwong14), Ivi Fung (sfung02)
+ */
+
 #include "CPU.h"
 
 #include <stdio.h>

@@ -1,7 +1,9 @@
 /* 
  *   Name       : Memory.c
  *   Assignment : CS40 Homework 6 (um)
- *   Purpose    : Module representing the memory of our Universal Machine
+ *   Purpose    : Module representing the segmented memory of our UM; 
+ *                supports setting and getting words and segments of memory
+ *                and has knowledge of all mapped and unmapped segments
  *   Editors    : Matthew Wong (mwong14), Ivi Fung (sfung02)
  */
 

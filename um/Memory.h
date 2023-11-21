@@ -1,7 +1,9 @@
 /* 
- *   Name       : Mem.h
+ *   Name       : Memory.c
  *   Assignment : CS40 Homework 6 (um)
- *   Purpose    : Module representing the memory of our Universal Machine
+ *   Purpose    : Module representing the segmented memory of our UM; 
+ *                supports setting and getting words and segments of memory
+ *                and has knowledge of all mapped and unmapped segments
  *   Editors    : Matthew Wong (mwong14), Ivi Fung (sfung02)
  */
 
@@ -34,4 +36,5 @@ SegmentID Mem_mapNew(Mem mem, uint32_t size);
 void Mem_mapFree(Mem mem, uint32_t segID);
 
 bool Mem_isInRange(Mem mem, uint32_t segID, uint32_t wordID);
+
 #endif
