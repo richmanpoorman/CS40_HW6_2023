@@ -34,13 +34,33 @@ Architecture Description:
         specific segments.
         
 Unit Tests:
+Add-- These verify that add is functioning properly
+        - add_twoZerosTest: Add two zeros together, then check the 
+        result is zero
+        - add_twoNonzerosTest: Add two nonzero numbers together, 
+        then check the result
+        - add_threeNumsTest: Add two nonzero numbers together, 
+        add that sum to another number, then check the result
+        - add_toSelfTest: Add register to itself, then check the result
+Multiply-- These verify that multiply is functioning properly
+        - mult_twoZerosTest: Multiply two zeros together, then check the 
+        result is zero
+        - mult_twoNonzerosTest: Multiply two nonzero numbers together, 
+        then check the result
+        - mult_threeNumsTest: Multiply two nonzero numbers together, 
+        add that sum to another number, then check the result
+        - mult_toSelfTest: Multiply register to itself, then check the result
+Divide-- These verify that divide is functioning properly
+        - div_evenIdentityTest: Divide an even number by 1, then check 
+        that the result is the same number
 
 
 Timing Our UM:
-It takes our UM x seconds to perform x instructions (in midmark.um). This
-is about x seconds per instuction. Thus, we believe that it takes our
-UM x seconds to perform 50 million instructions. 
-math goes here.
+It takes our UM 10.61 seconds to perform 85070522 instructions 
+(as measured by using the time command while running midmark.um). This
+is about 1.247e-7 seconds per instuction. Thus, we believe that it takes our
+UM about 6.236 seconds to perform 50 million instructions. 
+1.245e-7 * 50000000 ~= 6.236
 
 Time Spent on This Assignment:
         - Analysis: 2h
