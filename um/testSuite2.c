@@ -304,10 +304,10 @@ void segTest(Seq_T stream)
 void loadDiffSegTest(Seq_T stream)
 {
         loadValue(stream, r1, 5);
-        mapSeg(stream, r1, r2);
+        mapSeg(stream, r2, r1);
         loadValue(stream, r3, 10); /* Print out op code */
         /* Multiply twice to move into opcode spot */
-        loadValue(stream, r4, 0x4000);
+        loadValue(stream, r4, 1 << 14);
 
         /* Load print letter into segment */
         mult(stream, r0, r3, r4);

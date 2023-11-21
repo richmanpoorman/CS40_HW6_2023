@@ -48,7 +48,6 @@ extern void instructionsBeforeHalt(Seq_T stream);
 extern void nandTest(Seq_T stream);
 extern void segTest(Seq_T stream);
 
-extern void loadDiffSegTest(Seq_T stream);
 
 static struct test_info {
         const char *name;
@@ -93,8 +92,7 @@ const char *test_input; /* NULL if no input */
         {"readNothing", NULL, printGivenCharsTest},
         {"readEndLine", "There\nonce\nwas\na\nman\n", printGivenCharsTest},
         {"readAllChars", NULL, printGivenCharsTest},  /* MADE CUSTOM FILE */
-        {"readRandomChars", NULL, printGivenCharsTest}, /* MADE CUSTOM FILE */
-        {"loadDiffSegTest", NULL, loadDiffSegTest}
+        {"readRandomChars", NULL, printGivenCharsTest} /* MADE CUSTOM FILE */
 };
 
   
@@ -110,7 +108,7 @@ static FILE *open_and_free_pathname(char *path);
  * if contents is NULL or empty, remove the given 'path', 
  * otherwise write 'contents' into 'path'.  Either way, free 'path'.
  */
-/* static void write_or_remove_file(char *path, const char *contents); */
+static void write_or_remove_file(char *path, const char *contents);
 
 static void write_test_files(struct test_info *test);
 
@@ -151,20 +149,20 @@ static void write_test_files(struct test_info *test)
         Seq_free(&instructions);
         fclose(binary);
         
-        FILE *input = fopen(Fmt_string("%s.0", test->name), "wb");
-        assert(input != NULL);
+        // FILE *input = fopen(Fmt_string("%s.0", test->name), "wb");
+        // assert(input != NULL);
 
-        fputs(test->test_input, input);
-        fclose(input);
-
-/*         write_or_remove_file(Fmt_string("%s.0", test->name),
-                             test->test_input); */
+        // fputs(test->test_input, input);
+        // fclose(input);
+  
+        write_or_remove_file(Fmt_string("%s.0", test->name),
+                             test->test_input);
 /*
         write_or_remove_file(Fmt_string("%s.1", test->name),
                              test->expected_output);
          */
 }
-/* 
+
 static void write_or_remove_file(char *path, const char *contents)
 {
         if (contents == NULL || *contents == '\0') {
@@ -177,7 +175,7 @@ static void write_or_remove_file(char *path, const char *contents)
                 fclose(input);
         }
         free(path);
-} */
+}
  
 static FILE *open_and_free_pathname(char *path)
 {
