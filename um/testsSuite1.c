@@ -146,8 +146,8 @@ void cmove_stayTest(Seq_T sequence)
         halt(sequence); 
 }
 
-
-/* no good naughty tests */
+/* hi tas*/
+/* no good naughty tests -- these will fail on purpose DO NOT SUBMIT */
 void add_overflowTest(Seq_T sequence) 
 {
         uint32_t maxValue = 0;

@@ -1,0 +1,49 @@
+cs40 hw06 um
+Matthew Wong (mwong14) and Ivi Fung (sfung02)
+
+Acknowledgements: We would like to thank the creator of advent.umz for
+entertaining us for at least 20 minutes.
+Asli-- for helping us figure out how to calculate our UMs runtime on
+50 million instructions!!! MVP fr.
+
+Implementation Notes: To our knowledge, we have implemented every aspect of
+the spec correctly. 
+
+Departures from Design: We combined four of our modules originally listed in
+design (Fetcher, Decoder, Executor, and Registers) into a single 
+module-- CPU.
+
+Architecture Description:
+        - CPU: This module is responsible for arithmetic and logical 
+        operations performed by the Universal Machine. This module
+        fetches, decodes, and executes instructions-- writing to
+        and accessing both the registers and segmented memory as needed. 
+        CPU knows the values stored in the UM's registers, the 
+        location pointed to by the 32-bit program counter, and the
+        names of input and ouput files for I/O.
+        - Memory: This module represents the main segmented memory, for 
+        both getting and setting values. Memory knows which segments
+        are currently mapped and unmapped, as well as which previously
+        used segments have been unmapped are are ready for reuse. Memory is
+        used by CPU (both setting and getting) in order to retrieve and
+        execute instructions.
+        - Segment: This module represents a single individual segment 
+        within the Universal Machine's memory. Segment knows the size
+        (in words) of the segment and can get and set specific words
+        of the segment. Segment is used by Memory to manipulate
+        specific segments.
+        
+Unit Tests:
+
+
+Timing Our UM:
+It takes our UM x seconds to perform x instructions (in midmark.um). This
+is about x seconds per instuction. Thus, we believe that it takes our
+UM x seconds to perform 50 million instructions. 
+math goes here.
+
+Time Spent on This Assignment:
+        - Analysis: 2h
+        - Design: 8h
+        - Problem Solving: 8h
+        - Testing: 6h
