@@ -43,6 +43,7 @@ test: test.o $(MODULES)
 	$(CC) $(LDFLAGS) $^ -o $@ $(LDLIBS)
 
 makeTests: runTestMaker.o makeTests.o testsSuite1.o testSuite2.o
-
+	$(CC) $(LDFLAGS) $^ -o $@ $(LDLIBS)
+	
 clean:
 	rm -f um *.o

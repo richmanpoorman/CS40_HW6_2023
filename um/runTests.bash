@@ -13,6 +13,8 @@ for test in "${TESTS[@]}"; do
         if [ -f $test.0 ]; then
                 echo FOUND $test.0
                 inputFile=$test.0
+        else 
+                echo NO $test.0 FOUND
         fi 
         touch $test.1
         um $test.um < $inputFile > $test.1
