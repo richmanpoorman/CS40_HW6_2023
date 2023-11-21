@@ -213,7 +213,7 @@ void executeFunction(CPU_State state)
         uint32_t ra = Bitpack_getu(instruction, registerIDSize, raLsb);
         uint32_t rb = Bitpack_getu(instruction, registerIDSize, rbLsb);
         uint32_t rc = Bitpack_getu(instruction, registerIDSize, rcLsb);
-        
+
         switch(instructionType) {
                 case CMOV:
                 CPU_cmove(state, ra, rb, rc);

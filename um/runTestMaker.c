@@ -43,6 +43,12 @@ extern void printLetters(Seq_T stream);
 extern void cmove_moveTest(Seq_T stream);
 extern void cmove_stayTest(Seq_T stream);
 
+extern void takeInputTest(Seq_T stream);
+extern void instructionsBeforeHalt(Seq_T stream);
+extern void nandTest(Seq_T stream);
+extern void segTest(Seq_T stream);
+
+
 static struct test_info {
         const char *name;
 const char *test_input; /* NULL if no input */
@@ -70,13 +76,21 @@ const char *test_input; /* NULL if no input */
         {"div_oddByTwoTest", NULL, div_oddByTwoTest},
         {"div_bySelfTest", NULL, div_bySelfTest},
         {"printAllCharsTest"  , NULL, printAllCharactersTest},
-        {"printURandom"       , NULL, printGivenCharsTest},
         {"cmove_moveTest", NULL, cmove_moveTest},
         {"cmove_stayTest", NULL, cmove_stayTest},
         {"jumpOnZero", NULL, jumpOnZeroTest},
-        {"printLetters", NULL, printLetters}
+        {"printLetters", NULL, printLetters},
         //{"evilHaltTest", NULL, evilHaltTest}
         /* copy in files */
+        {"takeInputTest", "hi!", takeInputTest},
+        {"dontTakeInputTest", "no", takeInputTest},
+        {"emptyInputTest", "", takeInputTest},
+        {"longInputTest", "this is super bad", takeInputTest},
+        {"haltInTheMiddle", NULL, instructionsBeforeHalt},
+        {"nandMaximums", NULL, nandTest},
+        {"makeFreeGetSetSegments", NULL, segTest},
+        {"readNothing", NULL, printGivenCharsTest},
+        {"readEndLine", "There\nonce\nwas\na\nman\n", printGivenCharsTest}
 };
 
   
@@ -96,9 +110,9 @@ static void write_or_remove_file(char *path, const char *contents);
 
 static void write_test_files(struct test_info *test);
 
-
 int main (int argc, char *argv[])
 {
+
         bool failed = false;
         if (argc == 1)
                 for (unsigned i = 0; i < NTESTS; i++) {

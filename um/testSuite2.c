@@ -131,22 +131,25 @@ void printLetters(Seq_T stream)
 
         halt(stream);
 }
-
+/* Batch 3 */
 /* Tries to read back all of the data */
 void printGivenCharsTest(Seq_T stream)
 {
-        loadValue(stream, r7, 0) /* 0 */
-        loadValue(stream, r6, 2); /* Jump back up */
+        loadValue(stream, r7, 0); /* 0 */
+        loadValue(stream, r6, 3); /* Jump back up */
+        loadValue(stream, r5, 8); /* Jump to next */
 
         readIn(stream, r0);
         nand(stream, r1, r0, r0);
-        loadValue(stream, r2, 7); /* Jump to halt */
-        cmove(stream, r2, r6, r1);
+        loadValue(stream, r2, 10); /* Jump to halt */
+        cmove(stream, r2, r5, r1);
         loadProgram(stream, r7, r2);
+        printOut(stream, r0);
+        loadProgram(stream, r7, r6);
         halt(stream);
         
 }
-/* Batch 3 */
+
 /* Tries to take "hi!" and responds "ok" if done*/
 void takeInputTest(Seq_T stream)
 {       
@@ -159,7 +162,7 @@ void takeInputTest(Seq_T stream)
         nand(stream, r0, r0, r0);
         add(stream, r0, r0, r5);
 
-        input(stream, r1);
+        readIn(stream, r1);
         
         loadValue(stream, r3, 10); 
         cmove(stream, r3, r2, r0);
@@ -170,7 +173,7 @@ void takeInputTest(Seq_T stream)
         nand(stream, r0, r0, r0);
         add(stream, r0, r0, r5);
 
-        input(stream, r1);
+        readIn(stream, r1);
         
         loadValue(stream, r3, 17); 
         cmove(stream, r3, r2, r0);
@@ -181,7 +184,7 @@ void takeInputTest(Seq_T stream)
         nand(stream, r0, r0, r0);
         add(stream, r0, r0, r5);
 
-        input(stream, r1);
+        readIn(stream, r1);
         
         loadValue(stream, r3, 24); 
         cmove(stream, r3, r2, r0);
@@ -192,6 +195,107 @@ void takeInputTest(Seq_T stream)
         loadValue(stream, r0, 'k'); 
         printOut(stream, r0);
         
+        halt(stream);
+}
+/* Run instructions before halting, printing "ok" and not "ok NO!"*/
+void instructionsBeforeHalt(Seq_T stream)
+{
+        loadValue(stream, r0, 'o');
+        printOut(stream, r0);
+
+        loadValue(stream, r0, 'k');
+        printOut(stream, r0);
+
+        halt(stream);
+
+        loadValue(stream, r0, ' ');
+        printOut(stream, r0);
+
+        loadValue(stream, r0, 'N');
+        printOut(stream, r0);
+
+        loadValue(stream, r0, 'O');
+        printOut(stream, r0);
+
+        loadValue(stream, r0, '!');
+        printOut(stream, r0);
+        halt(stream);
+}
+
+/* Checks possible nands between 0 and 0xffffffff */
+void nandTest(Seq_T stream)
+{
+        loadValue(stream, r7, 26); /* GO TO BAD */
+        loadValue(stream, r6, 0); /* 0 */
+
+
+        loadValue(stream, r5, 0); /* INT_MAX (if correct) */
+        nand(stream, r5, r0, r0); 
+        
+        loadValue(stream, r2, 1);
+        add(stream, r2, r2, r5);
+
+        loadValue(stream, r3, 9); /* GO TO NEXT */
+        cmove(stream, r3, r7, r2);
+        loadProgram(stream, r6, r3);
+
+        nand(stream, r1, r6, r5); /* INT_MAX with 0 */
+        
+        loadValue(stream, r2, 1);
+        add(stream, r2, r2, r1);
+
+        loadValue(stream, r3, 15); /* GO TO NEXT */
+        cmove(stream, r3, r7, r2);
+        loadProgram(stream, r6, r3);
+
+        nand(stream, r1, r5, r5); /* INT_MAX with INT_MAX */
+
+        loadValue(stream, r3, 19); /* GO TO NEXT */
+        cmove(stream, r3, r7, r1);
+        loadProgram(stream, r6, r3);
+
+        loadValue(stream, r0, 'Y');
+        printOut(stream, r0);
+        loadValue(stream, r0, 'A');
+        printOut(stream, r0);
+        loadValue(stream, r0, 'Y');
+        printOut(stream, r0);
+
+        halt(stream);
+
+        loadValue(stream, r0, 'B');
+        printOut(stream, r0);
+        loadValue(stream, r0, 'A');
+        printOut(stream, r0);
+        loadValue(stream, r0, 'D');
+        printOut(stream, r0);
+        halt(stream);
+}
+
+/* Create new segments of size 0 and 4, set/get from size 4, and free */
+void segTest(Seq_T stream) 
+{
+        
+        loadValue(stream, r7, 0); /* GO TO BAD */
+        loadValue(stream, r6, 1);
+
+        loadValue(stream, r0, 0);
+        mapSeg(stream, r1, r0);
+
+        loadValue(stream, r0, 4);
+        mapSeg(stream, r2, r0);
+        
+        for (int i = 0; i < 4; i++) {
+                loadValue(stream, r3, 'a' + i);
+                loadValue(stream, r0, i);
+                segStore(stream, r2, r0, r3);
+                segLoad(stream, r4, r2, r0);
+                printOut(stream, r4);
+        }
+        
+        unmapSeg(stream, r1);
+        unmapSeg(stream, r2);
+
         halt(stream);
 }
 

@@ -12,7 +12,7 @@ for test in "${TESTS[@]}"; do
         inputFile="/dev/null"
         if [ -f $test.0 ]; then
                 echo FOUND $test.0
-                $inputFile=$test.0
+                inputFile=$test.0
         fi 
         touch $test.1
         um $test.um < $inputFile > $test.1
