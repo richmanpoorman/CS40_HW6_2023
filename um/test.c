@@ -51,7 +51,7 @@ bool segmentFreeTest()
 }
 /*
  * Name       : segmentZeroFreeTest
- * Purpose    : Frees a segment of size 0 and checks that the segment is set to 
+ * Purpose    : Frees a segment of size 0 and checks that the segment is set to
                 null without memory leaks
  * Parameters : None
  * Return     : (bool) True if the test passes, false otherwise
@@ -88,7 +88,7 @@ bool segmentSetZero()
 }
 /*
  * Name       : segmentSetLast
- * Purpose    : Set the 2^32 - 1th word to 100 and check the 2^32 -               
+ * Purpose    : Set the 2^32 - 1th word to 100 and check the 2^32 -
                 1th word is 100
  * Parameters : None
  * Return     : (bool) True if the test passes, false otherwise
