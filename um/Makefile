@@ -9,14 +9,14 @@ IFLAGS = -I/comp/40/build/include -I/usr/sup/cii40/include/cii \
 	 -I/comp/40/build/lib -I/comp/40/build/include
 
 # Compiler Flags
-CFLAGS = -g -std=gnu99 -Wall -Wextra -Werror -Wfatal-errors -pedantic $(IFLAGS)
+CFLAGS = -g -O1 -std=gnu99 -Wall -Wextra -Werror -Wfatal-errors -pedantic $(IFLAGS)
 
 # Linking Flags
-LDFLAGS = -g -L/comp/40/build/lib -L/usr/sup/cii40/lib64
+LDFLAGS = -g  -L/comp/40/build/lib -L/usr/sup/cii40/lib64
 	  
 
 # Libraries for Linking
-LDLIBS = -lbitpack -lcii40 -lm -lrt -L/comp/40/build/lib 
+LDLIBS = -lcii40-O1 -lbitpack -lm -lrt -L/comp/40/build/lib  -lcii40
  	 
 
 # all the .h files
