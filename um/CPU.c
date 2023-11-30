@@ -14,19 +14,33 @@
 #include <stdio.h>
 #include <seq.h>
 #include <assert.h>
-#include <bitpack.h>
 
 #define MAX_VALUE 0xffffffff
-#define instructionLsb 28
-#define instructionSize 4
+
+#define loadBits 0x01ffffff
+#define instructionBits 0xf0000000
+#define raBits 0x000001c0
+#define rbBits 0x00000038
+#define rcBits 0x00000007
+#define rLoadBits 0x0e000000
 #define raLsb 6
 #define rbLsb 3
-#define rcLsb 0
-#define rLoad 25
-#define registerIDSize 3
-#define loadLsb 0
-#define loadSize 25
+#define rLoadLsb 25
 
+#define CMOV         0x00000000
+#define SEGLOAD      0x10000000
+#define SEGSTORE     0x20000000
+#define ADD          0x30000000
+#define MUL          0x40000000
+#define DIV          0x50000000
+#define NAND         0x60000000
+#define HALT         0x70000000
+#define MAPSEG       0x80000000
+#define UNMAPSEG     0x90000000
+#define OUT          0xa0000000
+#define IN           0xb0000000
+#define LOADPROGRAM  0xc0000000
+#define LOADVALUE    0xd0000000
 /*
  * Name    : CPU_State
  * Purpose : Represents the current state of the computer at any given time
@@ -39,29 +53,9 @@ typedef struct CPU_State {
         uint32_t registers[8];
         uint32_t programCounter;
         bool isRunning;
+        uint32_t mainInstructionSize;
 } *CPU_State;
 
-/*
- * Name    : INSTRUCTION_TYPE
- * Purpose : Represents the possible instructions (as an enum)
- * Notes   : Only used inside of CPU
- */
-typedef enum INSTRUCTION_TYPE {
-        CMOV        = 0 , 
-        SEGLOAD     = 1 , 
-        SEGSTORE    = 2 , 
-        ADD         = 3 , 
-        MUL         = 4 , 
-        DIV         = 5 ,
-        NAND        = 6 , 
-        HALT        = 7 , 
-        MAPSEG      = 8 , 
-        UNMAPSEG    = 9 , 
-        OUT         = 10, 
-        IN          = 11, 
-        LOADPROGRAM = 12, 
-        LOADVALUE   = 13
-} INSTRUCTION_TYPE;
 
 void runProgram(FILE *input, FILE *output, FILE *program);
 
@@ -135,7 +129,7 @@ CPU_State CPU_new(FILE *input, FILE *output) {
         }
         cpu -> programCounter = 0;
         cpu -> isRunning = true;
-
+        cpu -> mainInstructionSize = 0;
         return cpu;
 }
 
@@ -163,6 +157,7 @@ void CPU_free(CPU_State *state) {
  * Notes     : Will CRE if it runs out of memory;
  *             Will CRE if reading the file fails
  */
+
 void initializeProgram(CPU_State state, FILE *program)
 {       
         Seq_T instructions = Seq_new(1024);
@@ -170,18 +165,16 @@ void initializeProgram(CPU_State state, FILE *program)
         while (!feof(program)) {
                 uint32_t instruction = 0;
                 for (int i = 3; i >= 0; i--) {
-                        instruction = Bitpack_newu(instruction, 8, i * 8, 
-                                                   byte);
+                        instruction = instruction | (byte << (i * 8));
                         assert(!ferror(program));
                         byte = fgetc(program);
-                        
                 }
                 
                 Seq_addhi(instructions, (void *)(uintptr_t)instruction);
         }
         
         Segment seg0 = Segment_new(Seq_length(instructions));
-
+        state -> mainInstructionSize = Segment_size(seg0);
         int index = 0;
         while (Seq_length(instructions) > 0)
         {
@@ -207,74 +200,86 @@ void initializeProgram(CPU_State state, FILE *program)
  */
 void executeFunction(CPU_State state)
 {
+        uint32_t instruction = getInstruction(state);
         if (!(state -> isRunning)) {
                 return;
         }
-        uint32_t instruction = getInstruction(state);
-        assert(instruction != MAX_VALUE);
+        
 
-        INSTRUCTION_TYPE instructionType = Bitpack_getu(instruction, 
-                                                        instructionSize,
-                                                        instructionLsb);
+        uint32_t instructionType = instruction & instructionBits;
 
-        uint32_t ra = Bitpack_getu(instruction, registerIDSize, raLsb);
-        uint32_t rb = Bitpack_getu(instruction, registerIDSize, rbLsb);
-        uint32_t rc = Bitpack_getu(instruction, registerIDSize, rcLsb);
+        uint32_t ra = (instruction & raBits) >> raLsb;
+        uint32_t rb = (instruction & rbBits) >> rbLsb;
+        uint32_t rc = instruction & rcBits;
 
         switch(instructionType) {
                 case CMOV:
+                // fprintf(stderr, "CMOV\n");
                 CPU_cmove(state, ra, rb, rc);
                 break;
 
                 case SEGLOAD:
+                // fprintf(stderr, "SEGLOAD\n");
                 CPU_segLoad(state, ra, rb, rc);
                 break;
 
                 case SEGSTORE:
+                // fprintf(stderr, "SEGSTORE\n");
                 CPU_segStore(state, ra, rb, rc);
                 break;
 
                 case ADD:
+                // fprintf(stderr, "ADD r%u = r%u + r%u\n", ra, rb, rc);
                 CPU_add(state, ra, rb, rc);
                 break;
 
                 case MUL:
+                // fprintf(stderr, "MUL\n");
                 CPU_mult(state, ra, rb, rc);
                 break;
 
                 case DIV:
+                // fprintf(stderr, "DIV\n");
                 CPU_div(state, ra, rb, rc);
                 break;
 
                 case NAND:
+                // fprintf(stderr, "NAND\n");
                 CPU_nand(state, ra, rb, rc);
                 break;
 
                 case HALT:
+                // fprintf(stderr, "HALT\n");
                 CPU_halt(state);
                 break;
 
                 case MAPSEG:
+                // fprintf(stderr, "MAPSEG\n");
                 CPU_mapSeg(state, rb, rc);
                 break;
 
                 case UNMAPSEG:
+                // fprintf(stderr, "UNMAPSEG\n");
                 CPU_unmapSeg(state, rc);
                 break;
 
                 case OUT:
+                // fprintf(stderr, "OUT\n");
                 CPU_printOut(state, rc);
                 break;
 
                 case IN:
+                // fprintf(stderr, "IN\n");
                 CPU_readIn(state, rc);
                 break;
 
                 case LOADPROGRAM:
+                // fprintf(stderr, "LOADPROGRAM\n");
                 CPU_loadProgram(state, rb, rc);
                 break;
 
                 case LOADVALUE:
+                // fprintf(stderr, "LOADVALUE r%u = %u\n", (instruction & rLoadBits) >> rLoadLsb, instruction & loadBits);
                 CPU_loadValue(state, instruction);
                 break;
 
@@ -283,11 +288,6 @@ void executeFunction(CPU_State state)
                 break;
         }
         
-        /* If we are done reading the program, then set the flag */
-        if (state -> isRunning && 
-            !Mem_isInRange(state -> mem, 0, state -> programCounter)) {
-                state -> isRunning = false;
-        }
 }
 
 /*
@@ -302,8 +302,10 @@ uint32_t getInstruction(CPU_State state)
 {
         Mem mem = state -> mem;
         
-        if (!Mem_isInRange(mem, 0, state -> programCounter)) {
+        if (state -> programCounter >= state -> mainInstructionSize) {
+                state -> isRunning = false; 
                 return MAX_VALUE;
+                
         }
         uint32_t instruction = Mem_getWord(mem, 0, state -> programCounter);
         state -> programCounter++;
@@ -547,6 +549,7 @@ static inline void CPU_loadProgram(CPU_State state, uint32_t rb, uint32_t rc)
 
         Segment seg  = Mem_getSegment(mem, registers[rb]);
         Segment copy = Segment_copy(seg);
+        state -> mainInstructionSize = Segment_size(copy);
         Mem_setSegment(mem, 0, copy);
 }
 
@@ -556,23 +559,38 @@ static inline void CPU_loadProgram(CPU_State state, uint32_t rb, uint32_t rc)
  * Parameter : (CPU_State) state -- The computer state to alter (with register)
  * Return    : None
  * Notes     : Alters the state of the CPU_State;
- *             Bitpacks inside (because of unique instruction set)
  */
 static inline void CPU_loadValue(CPU_State state, uint32_t instruction)
 {
-        uint32_t rL = Bitpack_getu(instruction, registerIDSize, rLoad);
-        uint32_t loadVal = Bitpack_getu(instruction, loadSize, loadLsb);
+        uint32_t rL = (instruction & rLoadBits) >> rLoadLsb;
+        uint32_t loadVal = instruction & loadBits;
         uint32_t *registers = state -> registers;
         registers[rL] = loadVal;
 }
 
-#undef MAX_VALUE
-#undef instructionLsb
-#undef instructionSize
+#undef MAX_VALUE 
+
+#undef loadBits 
+#undef instruction
+#undef raBits 
+#undef rbBits 
+#undef rcBits 
+#undef rLoadBits 
 #undef raLsb 
 #undef rbLsb 
-#undef rcLsb 
-#undef rLoad  
-#undef registerIDSize 
-#undef loadLsb 
-#undef loadSize
+#undef rLoadLsb 
+
+#undef CMOV         
+#undef SEGLOAD      
+#undef SEGSTORE     
+#undef ADD          
+#undef MUL          
+#undef DIV          
+#undef NAND         
+#undef HALT         
+#undef MAPSEG       
+#undef UNMAPSEG     
+#undef OUT          
+#undef IN           
+#undef LOADPROGRAM  
+#undef LOADVALUE    
