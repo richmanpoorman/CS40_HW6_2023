@@ -9,7 +9,6 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <mem.h>
-#include <assert.h>
 
 typedef uint32_t Word;
 typedef struct Segment {
@@ -56,7 +55,6 @@ Segment Segment_new(uint32_t size)
  */
 Segment Segment_copy(Segment seg)
 {
-        assert(seg != NULL);
         uint32_t size = seg -> size;
         Segment newSeg = Segment_new(size);
 
@@ -78,8 +76,6 @@ Segment Segment_copy(Segment seg)
  */
 void Segment_free(Segment *seg)
 {
-        assert(seg != NULL && *seg != NULL);
-        
         Segment segment = *seg;
         
         if (segment -> words != NULL) {
@@ -98,7 +94,6 @@ void Segment_free(Segment *seg)
  */
 uint32_t Segment_size(Segment seg)
 {
-        assert(seg != NULL);
         return seg -> size;
 }
 
@@ -113,7 +108,6 @@ uint32_t Segment_size(Segment seg)
  */
 Word Segment_getWord(Segment seg, uint32_t position)
 {
-        assert(seg != NULL && seg -> words != NULL && position < seg -> size);
         return seg -> words[position];
 }
 
@@ -129,6 +123,5 @@ Word Segment_getWord(Segment seg, uint32_t position)
  */
 void Segment_setWord(Segment seg, uint32_t position, Word word)
 {
-        assert(seg != NULL && seg -> words != NULL && position < seg -> size);
         seg -> words[position] = word;
 }

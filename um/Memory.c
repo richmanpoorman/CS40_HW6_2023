@@ -11,7 +11,6 @@
 #include <seq.h>
 #include <mem.h>
 #include <stdbool.h>
-#include <assert.h>
 #include <stdlib.h>
 #include "Segment.h"
 
@@ -61,7 +60,6 @@ Mem Mem_new()
  */
 void Mem_freeMemory(Mem *mem)
 {
-        assert(mem != NULL && *mem != NULL);
         Mem memory = *mem;
 
         Seq_T segments = memory -> segments;
@@ -90,7 +88,6 @@ void Mem_freeMemory(Mem *mem)
  */
 Segment Mem_getSegment(Mem mem, uint32_t segID) 
 {
-        assert(mem != NULL && segID < (uint32_t)Seq_length(mem -> segments));
         return Seq_get(mem -> segments, segID);
 }
 
@@ -105,7 +102,6 @@ Segment Mem_getSegment(Mem mem, uint32_t segID)
  */
 void Mem_setSegment(Mem mem, uint32_t segID, Segment seg) 
 {
-        assert(mem != NULL && segID < (uint32_t)Seq_length(mem -> segments));
         Segment prevSegment = Mem_getSegment(mem, segID);
         Segment_free(&prevSegment);
         Seq_put(mem -> segments, segID, seg);
@@ -123,7 +119,6 @@ void Mem_setSegment(Mem mem, uint32_t segID, Segment seg)
  */
 Word Mem_getWord(Mem mem, uint32_t segID, uint32_t wordID) 
 {
-        assert(mem != NULL && segID < (uint32_t)Seq_length(mem -> segments));
         Segment seg = Mem_getSegment(mem, segID);
         return Segment_getWord(seg, wordID);
 }
@@ -142,7 +137,6 @@ Word Mem_getWord(Mem mem, uint32_t segID, uint32_t wordID)
 void Mem_setWord(Mem mem, uint32_t segID, uint32_t wordID, 
                     uint32_t value) 
 {
-        assert(mem != NULL && segID < (uint32_t)Seq_length(mem -> segments));
         Segment seg = Mem_getSegment(mem, segID);
         Segment_setWord(seg, wordID, value);
 }
@@ -157,7 +151,6 @@ void Mem_setWord(Mem mem, uint32_t segID, uint32_t wordID,
  */
 SegmentID Mem_mapNew(Mem mem, uint32_t size) 
 {
-        assert(mem != NULL);
         /* uses an unused segment ID if they exist in memory */
         if (Seq_length(mem -> nextSeenSegID) > 0) { 
                 uint32_t index = 
@@ -182,7 +175,6 @@ SegmentID Mem_mapNew(Mem mem, uint32_t size)
  */
 void Mem_mapFree(Mem mem, uint32_t segID) 
 {
-        assert(mem != NULL && segID < (uint32_t)Seq_length(mem -> segments));
         Segment seg = Seq_get(mem -> segments, segID);
         Segment_free(&seg);
         Seq_put(mem -> segments, segID, NULL);

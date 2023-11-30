@@ -13,7 +13,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <seq.h>
-#include <assert.h>
+// #include <assert.h>
 
 #define MAX_VALUE 0xffffffff
 
@@ -66,27 +66,27 @@ void initializeProgram(CPU_State state, FILE *program);
 uint32_t getInstruction(CPU_State state);
 void executeFunction(CPU_State state);
 
-static inline void CPU_cmove(CPU_State state, uint32_t ra, uint32_t rb, 
+ void CPU_cmove(CPU_State state, uint32_t ra, uint32_t rb, 
                              uint32_t rc);
-static inline void CPU_segLoad(CPU_State state, uint32_t ra, uint32_t rb, 
+ void CPU_segLoad(CPU_State state, uint32_t ra, uint32_t rb, 
                                uint32_t rc);
-static inline void CPU_segStore(CPU_State state, uint32_t ra, uint32_t rb, 
+ void CPU_segStore(CPU_State state, uint32_t ra, uint32_t rb, 
                                 uint32_t rc);
-static inline void CPU_add(CPU_State state, uint32_t ra, uint32_t rb, 
+ void CPU_add(CPU_State state, uint32_t ra, uint32_t rb, 
                            uint32_t rc);
-static inline void CPU_mult(CPU_State state, uint32_t ra, uint32_t rb, 
+ void CPU_mult(CPU_State state, uint32_t ra, uint32_t rb, 
                             uint32_t rc);
-static inline void CPU_div(CPU_State state, uint32_t ra, uint32_t rb, 
+ void CPU_div(CPU_State state, uint32_t ra, uint32_t rb, 
                            uint32_t rc);
-static inline void CPU_nand(CPU_State state, uint32_t ra, uint32_t rb, 
+ void CPU_nand(CPU_State state, uint32_t ra, uint32_t rb, 
                             uint32_t rc);
-static inline void CPU_halt(CPU_State state);
-static inline void CPU_mapSeg(CPU_State state, uint32_t rb, uint32_t rc);
-static inline void CPU_unmapSeg(CPU_State state, uint32_t rc);
-static inline void CPU_printOut(CPU_State state, uint32_t rc);
-static inline void CPU_readIn(CPU_State state, uint32_t rc);
-static inline void CPU_loadProgram(CPU_State state, uint32_t rb, uint32_t rc);
-static inline void CPU_loadValue(CPU_State state, uint32_t instruction);
+ void CPU_halt(CPU_State state);
+ void CPU_mapSeg(CPU_State state, uint32_t rb, uint32_t rc);
+ void CPU_unmapSeg(CPU_State state, uint32_t rc);
+ void CPU_printOut(CPU_State state, uint32_t rc);
+ void CPU_readIn(CPU_State state, uint32_t rc);
+ void CPU_loadProgram(CPU_State state, uint32_t rb, uint32_t rc);
+ void CPU_loadValue(CPU_State state, uint32_t instruction);
 
 /*
  * Name      : runProgram
@@ -166,7 +166,7 @@ void initializeProgram(CPU_State state, FILE *program)
                 uint32_t instruction = 0;
                 for (int i = 3; i >= 0; i--) {
                         instruction = instruction | (byte << (i * 8));
-                        assert(!ferror(program));
+                        // assert(!ferror(program));
                         byte = fgetc(program);
                 }
                 
@@ -284,7 +284,7 @@ void executeFunction(CPU_State state)
                 break;
 
                 default:
-                assert(false); /* Throw an error if not a good key */
+                CPU_halt(state);
                 break;
         }
         
@@ -322,7 +322,7 @@ uint32_t getInstruction(CPU_State state)
  * Return    : None
  * Notes     : Alters the state of the CPU_State
  */
-static inline void CPU_cmove(CPU_State state, uint32_t ra, uint32_t rb, 
+ void CPU_cmove(CPU_State state, uint32_t ra, uint32_t rb, 
                              uint32_t rc)
 {
         uint32_t *registers = state -> registers;
@@ -342,7 +342,7 @@ static inline void CPU_cmove(CPU_State state, uint32_t ra, uint32_t rb,
  * Return    : None
  * Notes     : Alters the state of the CPU_State
  */
-static inline void CPU_segLoad(CPU_State state, uint32_t ra, uint32_t rb, 
+ void CPU_segLoad(CPU_State state, uint32_t ra, uint32_t rb, 
                                uint32_t rc)
 {
         uint32_t *registers = state -> registers;
@@ -360,7 +360,7 @@ static inline void CPU_segLoad(CPU_State state, uint32_t ra, uint32_t rb,
  * Return    : None
  * Notes     : Alters the state of the CPU_State
  */
-static inline void CPU_segStore(CPU_State state, uint32_t ra, uint32_t rb, 
+ void CPU_segStore(CPU_State state, uint32_t ra, uint32_t rb, 
                                 uint32_t rc)
 {
         uint32_t *registers = state -> registers;
@@ -378,7 +378,7 @@ static inline void CPU_segStore(CPU_State state, uint32_t ra, uint32_t rb,
  * Return    : None
  * Notes     : Alters the state of the CPU_State
  */
-static inline void CPU_add(CPU_State state, uint32_t ra, uint32_t rb, 
+ void CPU_add(CPU_State state, uint32_t ra, uint32_t rb, 
                            uint32_t rc)
 {
         uint32_t *registers = state -> registers;
@@ -395,7 +395,7 @@ static inline void CPU_add(CPU_State state, uint32_t ra, uint32_t rb,
  * Return    : None
  * Notes     : Alters the state of the CPU_State
  */
-static inline void CPU_mult(CPU_State state, uint32_t ra, uint32_t rb, 
+ void CPU_mult(CPU_State state, uint32_t ra, uint32_t rb, 
                             uint32_t rc)
 {
         uint32_t *registers = state -> registers;
@@ -413,11 +413,10 @@ static inline void CPU_mult(CPU_State state, uint32_t ra, uint32_t rb,
  * Notes     : Alters the state of the CPU_State;
  *             Will CRE if rc is 0
  */
-static inline void CPU_div(CPU_State state, uint32_t ra, uint32_t rb, 
+ void CPU_div(CPU_State state, uint32_t ra, uint32_t rb, 
                            uint32_t rc)
 {
         uint32_t *registers = state -> registers;
-        assert(registers[rc] != 0);
         registers[ra] = registers[rb] / registers[rc];
 }
 
@@ -431,7 +430,7 @@ static inline void CPU_div(CPU_State state, uint32_t ra, uint32_t rb,
  * Return    : None
  * Notes     : Alters the state of the CPU_State
  */
-static inline void CPU_nand(CPU_State state, uint32_t ra, uint32_t rb, 
+ void CPU_nand(CPU_State state, uint32_t ra, uint32_t rb, 
                             uint32_t rc)
 {
         uint32_t *registers = state -> registers;
@@ -446,7 +445,7 @@ static inline void CPU_nand(CPU_State state, uint32_t ra, uint32_t rb,
  * Return    : None
  * Notes     : Alters the state of the CPU_State
  */
-static inline void CPU_halt(CPU_State state)
+ void CPU_halt(CPU_State state)
 {
         state -> isRunning = false;
 }
@@ -460,7 +459,7 @@ static inline void CPU_halt(CPU_State state)
  * Return    : None
  * Notes     : Alters the state of the CPU_State
  */
-static inline void CPU_mapSeg(CPU_State state, uint32_t rb, uint32_t rc)
+ void CPU_mapSeg(CPU_State state, uint32_t rb, uint32_t rc)
 {
         uint32_t *registers = state -> registers;
         Mem      mem        = state -> mem;
@@ -476,7 +475,7 @@ static inline void CPU_mapSeg(CPU_State state, uint32_t rb, uint32_t rc)
  * Return    : None
  * Notes     : Alters the state of the CPU_State
  */
-static inline void CPU_unmapSeg(CPU_State state, uint32_t rc)
+ void CPU_unmapSeg(CPU_State state, uint32_t rc)
 {
         uint32_t *registers = state -> registers;
         Mem      mem        = state -> mem;
@@ -492,7 +491,7 @@ static inline void CPU_unmapSeg(CPU_State state, uint32_t rc)
  * Return    : None
  * Notes     : Uses the output file from when CPU was initialized
  */
-static inline void CPU_printOut(CPU_State state, uint32_t rc)
+ void CPU_printOut(CPU_State state, uint32_t rc)
 {
         uint32_t *registers = state -> registers;
         FILE     *output    = state -> output;
@@ -510,7 +509,7 @@ static inline void CPU_printOut(CPU_State state, uint32_t rc)
  * Notes     : Alters the state of the CPU_State;
  *             Uses the input file from when CPU_State was initialized
  */
-static inline void CPU_readIn(CPU_State state, uint32_t rc)
+ void CPU_readIn(CPU_State state, uint32_t rc)
 {
         uint32_t *registers = state -> registers;
         FILE     *input     = state -> input;
@@ -536,7 +535,7 @@ static inline void CPU_readIn(CPU_State state, uint32_t rc)
  * Return    : None
  * Notes     : Alters the state of the CPU_State
  */
-static inline void CPU_loadProgram(CPU_State state, uint32_t rb, uint32_t rc)
+ void CPU_loadProgram(CPU_State state, uint32_t rb, uint32_t rc)
 {
         uint32_t *registers = state -> registers;
         Mem      mem        = state -> mem;
@@ -560,7 +559,7 @@ static inline void CPU_loadProgram(CPU_State state, uint32_t rb, uint32_t rc)
  * Return    : None
  * Notes     : Alters the state of the CPU_State;
  */
-static inline void CPU_loadValue(CPU_State state, uint32_t instruction)
+ void CPU_loadValue(CPU_State state, uint32_t instruction)
 {
         uint32_t rL = (instruction & rLoadBits) >> rLoadLsb;
         uint32_t loadVal = instruction & loadBits;
