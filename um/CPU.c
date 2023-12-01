@@ -549,6 +549,7 @@ uint32_t getInstruction(CPU_State state)
         Segment seg  = Mem_getSegment(mem, registers[rb]);
         Segment copy = Segment_copy(seg);
         state -> mainInstructionSize = Segment_size(copy);
+        // fprintf(stderr, "New Segment 0 Size: %i\n", Segment_size(copy));
         Mem_setSegment(mem, 0, copy);
 }
 

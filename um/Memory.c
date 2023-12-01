@@ -8,16 +8,26 @@
  */
 
 #include <stdint.h>
-#include <seq.h>
+// #include <seq.h>
 #include <mem.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include "Segment.h"
+#include <stdio.h>
+
+#define START_SIZE 256
 
 typedef uint32_t SegmentID;
 typedef struct Mem {
-        Seq_T segments;
-        Seq_T nextSeenSegID;
+        // Seq_T segments;
+        // Seq_T nextSeenSegID;
+        Segment  *segments;
+        uint32_t  segmentsSize;
+        uint32_t  segmentsCapacity;
+
+        uint32_t *nextSeenSegID;
+        uint32_t  nextSeenCapacity;
+        uint32_t  nextSeenSize;
 } *Mem;
 
 
@@ -30,7 +40,40 @@ void Mem_setWord(Mem mem, uint32_t segID, uint32_t wordID,
                     uint32_t value);
 SegmentID Mem_mapNew(Mem mem, uint32_t seg);
 void Mem_mapFree(Mem mem, uint32_t segID);
-bool Mem_isInRange(Mem mem, uint32_t segID, uint32_t wordID);
+
+void expandSegments(Mem mem);
+void expandNextSeen(Mem mem);
+
+void expandSegments(Mem mem)
+{
+        
+        uint32_t size        = mem -> segmentsCapacity;
+        uint32_t newSize     = 2 * size;
+        Segment *newSegments = CALLOC(newSize, sizeof(Segment));
+        Segment *segments    = mem -> segments;
+        for (uint32_t i = 0; i < size; i++) {
+                newSegments[i] = segments[i];
+        }
+        FREE(mem -> segments);
+        mem -> segments = newSegments;
+        mem -> segmentsCapacity = newSize;
+}
+void expandNextSeen(Mem mem)
+{
+        
+        uint32_t  size        = mem -> nextSeenCapacity;
+        uint32_t  newSize     = 2 * size;
+        uint32_t *newNextSeen = CALLOC(newSize, sizeof(uint32_t));
+        uint32_t *nextSeen    = mem -> nextSeenSegID;
+
+        for (uint32_t i = 0; i < size; i++) {
+                newNextSeen[i] = nextSeen[i];
+        }
+        FREE(mem -> nextSeenSegID);
+        mem -> nextSeenSegID = newNextSeen;
+        mem -> nextSeenCapacity  = newSize;
+}
+
 
 /*
  *  Name      : Mem_new
@@ -43,9 +86,14 @@ bool Mem_isInRange(Mem mem, uint32_t segID, uint32_t wordID);
 Mem Mem_new() 
 {
         Mem mem  = ALLOC(sizeof(*mem));
-        mem -> segments = Seq_new(1000);   
-        Seq_addhi(mem -> segments, Segment_new(0));
-        mem -> nextSeenSegID = Seq_new(50);
+        mem -> segments     = CALLOC(START_SIZE, sizeof(Segment));
+        mem -> segments[0]  = Segment_new(0);
+        mem -> segmentsCapacity = START_SIZE;
+        mem -> segmentsSize = 1;
+
+        mem -> nextSeenSegID = CALLOC(START_SIZE, sizeof(uint32_t));
+        mem -> nextSeenCapacity  = START_SIZE;
+        mem -> nextSeenSize = 0;
 
         return mem;
 }
@@ -61,19 +109,17 @@ Mem Mem_new()
 void Mem_freeMemory(Mem *mem)
 {
         Mem memory = *mem;
-
-        Seq_T segments = memory -> segments;
-        
-        while (Seq_length(segments) > 0) {
-                Segment seg = Seq_remlo(segments);
-                if (seg != NULL) {
-                        Segment_free(&seg);
-                }
+        uint32_t size = memory -> segmentsSize;
+        Segment *segments = memory -> segments;
+        for (uint32_t i = 0; i < size; i++) {
+                if (segments[i] == NULL) {
+                        continue;
+                } 
+                Segment_free(&segments[i]);
         }
-        Seq_free(&(memory -> segments));
 
-        Seq_free(&(memory -> nextSeenSegID));
-        
+        FREE(memory -> segments);
+        FREE(memory -> nextSeenSegID);
         FREE(*mem); 
 }
 
@@ -88,7 +134,8 @@ void Mem_freeMemory(Mem *mem)
  */
 Segment Mem_getSegment(Mem mem, uint32_t segID) 
 {
-        return Seq_get(mem -> segments, segID);
+        
+        return mem -> segments[segID];
 }
 
 /*
@@ -102,9 +149,9 @@ Segment Mem_getSegment(Mem mem, uint32_t segID)
  */
 void Mem_setSegment(Mem mem, uint32_t segID, Segment seg) 
 {
-        Segment prevSegment = Mem_getSegment(mem, segID);
-        Segment_free(&prevSegment);
-        Seq_put(mem -> segments, segID, seg);
+        Segment_free(&(mem -> segments[segID]));
+        mem -> segments[segID] = seg;
+        
 }
 
 /*
@@ -119,8 +166,8 @@ void Mem_setSegment(Mem mem, uint32_t segID, Segment seg)
  */
 Word Mem_getWord(Mem mem, uint32_t segID, uint32_t wordID) 
 {
-        Segment seg = Mem_getSegment(mem, segID);
-        return Segment_getWord(seg, wordID);
+        
+        return Segment_getWord(mem -> segments[segID], wordID);
 }
 
 /*
@@ -137,8 +184,7 @@ Word Mem_getWord(Mem mem, uint32_t segID, uint32_t wordID)
 void Mem_setWord(Mem mem, uint32_t segID, uint32_t wordID, 
                     uint32_t value) 
 {
-        Segment seg = Mem_getSegment(mem, segID);
-        Segment_setWord(seg, wordID, value);
+        Segment_setWord(mem -> segments[segID], wordID, value);
 }
 
 /*
@@ -151,17 +197,33 @@ void Mem_setWord(Mem mem, uint32_t segID, uint32_t wordID,
  */
 SegmentID Mem_mapNew(Mem mem, uint32_t size) 
 {
-        /* uses an unused segment ID if they exist in memory */
-        if (Seq_length(mem -> nextSeenSegID) > 0) { 
-                uint32_t index = 
-                        (uint32_t)(uintptr_t)Seq_remlo(mem -> nextSeenSegID);
-                Seq_put(mem -> segments, index, Segment_new(size));
-                return index; 
+        
+        if (mem -> nextSeenSize == 0) {
+                if (mem -> segmentsCapacity == mem -> segmentsSize) {
+                        expandSegments(mem);
+                }
+                mem -> segments[mem -> segmentsSize] = Segment_new(size);
+                uint32_t index = mem -> segmentsSize;
+                mem -> segmentsSize++;
+                return index;
         }
-        else { /* otherwise creates a completely new segment ID */
-                Seq_addhi(mem -> segments, Segment_new(size));
-        }
-        return Seq_length(mem -> segments) - 1;
+        mem -> nextSeenSize--;
+        uint32_t nextPosition = mem -> nextSeenSize; 
+        uint32_t index = mem -> nextSeenSegID[nextPosition];
+        mem -> segments[index] = Segment_new(size);
+        return index;
+
+        // /* uses an unused segment ID if they exist in memory */
+        // if (Seq_length(mem -> nextSeenSegID) > 0) { 
+        //         uint32_t index = 
+        //                 (uint32_t)(uintptr_t)Seq_remlo(mem -> nextSeenSegID);
+        //         Seq_put(mem -> segments, index, Segment_new(size));
+        //         return index; 
+        // }
+        // else { /* otherwise creates a completely new segment ID */
+        //         Seq_addhi(mem -> segments, Segment_new(size));
+        // }
+        // return Seq_length(mem -> segments) - 1;
 }
 
 /*
@@ -175,30 +237,17 @@ SegmentID Mem_mapNew(Mem mem, uint32_t size)
  */
 void Mem_mapFree(Mem mem, uint32_t segID) 
 {
-        Segment seg = Seq_get(mem -> segments, segID);
-        Segment_free(&seg);
-        Seq_put(mem -> segments, segID, NULL);
-        Seq_addhi(mem -> nextSeenSegID, (void *)(uintptr_t)segID);
-}
-
-/*
- * Name      : Mem_isInRange
- * Purpose   : Determines whether a given word of a given segment is mapped in
- *             the memory of our Universal Machine
- * Parameter : (Mem) mem -- The memory block with the segment to free
- *             (Segment) seg -- The 32-bit memory identifier of the segment
- * Return    : True if $m[segID][wordID] is mapped, false otherwise
- * Notes     : Will CRE if mem is NULL
- */
-bool Mem_isInRange(Mem mem, uint32_t segID, uint32_t wordID) 
-{
-        /* checks that segID is in bounds*/
-        if (segID >= (uintptr_t)Seq_length(mem -> segments)) { 
-                return false;
+        
+        Segment_free(&(mem -> segments[segID]));
+        uint32_t nextPos = mem -> nextSeenSize;
+        if (mem -> nextSeenCapacity == nextPos) {
+                expandNextSeen(mem);
         }
-        /* checks that wordID is in bounds*/
-        if (wordID >= Segment_size(Mem_getSegment(mem, segID))) {
-                return false;
-        }
-        return true;
+        mem -> nextSeenSegID[nextPos] = segID;
+        mem -> nextSeenSize++;
+        // Segment seg = Seq_get(mem -> segments, segID);
+        // Segment_free(&seg);
+        // Seq_put(mem -> segments, segID, NULL);
+        // Seq_addhi(mem -> nextSeenSegID, (void *)(uintptr_t)segID);
 }
+#undef START_SIZE
