@@ -3,7 +3,7 @@
  *   Assignment : CS40 Homework 6 (um)
  *   Purpose    : Module responsible for performs the arithmetic and
  *                logical operations of the Universal Machine; fetches,
- *                decodes, and executes instructions from memory
+ *                decodes, and executes instructions from cpu.memory
  *   Editors    : Matthew Wong (mwong14), Ivi Fung (sfung02)
  */
 
@@ -43,122 +43,152 @@
 #define LOADVALUE    0xd0000000
 /*
  * Name    : CPU_State
- * Purpose : Represents the current state of the computer at any given time
+ * Purpose : Represents the current  of the computer at any given time
  * Notes   : Only used inside of CPU
  */
+// typedef struct CPU_State {
+//         Mem cpu.mem;
+//         FILE *cpu.input;
+//         FILE *cpu.output;
+//         uint32_t cpu.registers[8];
+//         uint32_t cpu.programCounter;
+//         bool cpu.isRunning;
+//         uint32_t cpu.mainInstructionSize;
+// } *CPU_State;
+
+
 typedef struct CPU_State {
         Mem mem;
         FILE *input;
         FILE *output;
         uint32_t registers[8];
         uint32_t programCounter;
-        bool isRunning;
         uint32_t mainInstructionSize;
-} *CPU_State;
+        bool isRunning;
+        
+} CPU_State;
 
 
-void runProgram(FILE *input, FILE *output, FILE *program);
 
-CPU_State CPU_new(FILE *input, FILE *output);
-void CPU_free(CPU_State *state);
-void initializeProgram(CPU_State state, FILE *program);
+void runProgram(FILE *inFile, FILE *outFile, FILE *program);
 
-uint32_t getInstruction(CPU_State state);
-void executeFunction(CPU_State state);
+// CPU_State CPU_new(FILE *cpu.input, FILE *cpu.output);
+// void CPU_free(CPU_State *);
+void initializeProgram(FILE *program);
 
- void CPU_cmove(CPU_State state, uint32_t ra, uint32_t rb, 
-                             uint32_t rc);
- void CPU_segLoad(CPU_State state, uint32_t ra, uint32_t rb, 
+uint32_t getInstruction();
+void executeFunction();
+
+void CPU_cmove(uint32_t ra, uint32_t rb, 
+                            uint32_t rc);
+void CPU_segLoad(uint32_t ra, uint32_t rb, 
+                              uint32_t rc);
+void CPU_segStore(uint32_t ra, uint32_t rb, 
                                uint32_t rc);
- void CPU_segStore(CPU_State state, uint32_t ra, uint32_t rb, 
-                                uint32_t rc);
- void CPU_add(CPU_State state, uint32_t ra, uint32_t rb, 
+void CPU_add(uint32_t ra, uint32_t rb, 
+                          uint32_t rc);
+void CPU_mult(uint32_t ra, uint32_t rb, 
                            uint32_t rc);
- void CPU_mult(CPU_State state, uint32_t ra, uint32_t rb, 
-                            uint32_t rc);
- void CPU_div(CPU_State state, uint32_t ra, uint32_t rb, 
+void CPU_div(uint32_t ra, uint32_t rb, 
+                          uint32_t rc);
+void CPU_nand(uint32_t ra, uint32_t rb, 
                            uint32_t rc);
- void CPU_nand(CPU_State state, uint32_t ra, uint32_t rb, 
-                            uint32_t rc);
- void CPU_halt(CPU_State state);
- void CPU_mapSeg(CPU_State state, uint32_t rb, uint32_t rc);
- void CPU_unmapSeg(CPU_State state, uint32_t rc);
- void CPU_printOut(CPU_State state, uint32_t rc);
- void CPU_readIn(CPU_State state, uint32_t rc);
- void CPU_loadProgram(CPU_State state, uint32_t rb, uint32_t rc);
- void CPU_loadValue(CPU_State state, uint32_t instruction);
+void CPU_halt();
+void CPU_mapSeg(uint32_t rb, uint32_t rc);
+void CPU_unmapSeg(uint32_t rc);
+void CPU_printOut(uint32_t rc);
+void CPU_readIn(uint32_t rc);
+void CPU_loadProgram(uint32_t rb, uint32_t rc);
+void CPU_loadValue(uint32_t instruction);
 
+CPU_State cpu = {
+        .mem                 = NULL,
+        .input               = NULL,
+        .output              = NULL,
+        .registers           = {0, 0, 0, 0, 0, 0, 0, 0},
+        .programCounter      = 0,
+        .mainInstructionSize = 0,
+        .isRunning           = true
+};
 /*
  * Name      : runProgram
  * Purpose   : Emulates the Universal Machine with the given program and 
- *             the given input, output streams
- * Parameter : (FILE *) input   -- The input stream to read input from
- *             (FILE *) output  -- The output stream to write output to
+ *             the given cpu.input, cpu.output streams
+ * Parameter : (FILE *) cpu.input   -- The cpu.input stream to read cpu.input from
+ *             (FILE *) cpu.output  -- The cpu.output stream to write cpu.output to
  *             (FILE *) program -- The .um binary file with the program
  * Return    : None
  * Notes     : Runs the entire program, and only ends when it reaches the end
  *             of instructions, or the program halts
  */
-void runProgram(FILE *input, FILE *output, FILE *program)
+void runProgram(FILE *inFile, FILE *outFile, FILE *program)
 {
-        CPU_State state = CPU_new(input, output);
-        
-        initializeProgram(state, program);
-        while (state -> isRunning) {
-                executeFunction(state);
+        cpu.mem                 = Mem_new();
+        cpu.input               = inFile;
+        cpu.output              = outFile;
+        cpu.programCounter      = 0;
+        cpu.mainInstructionSize = 0;
+        cpu.isRunning           = true;
+        for (int i = 0; i < 8; i++) {
+                cpu.registers[i] = 0;
         }
         
-        CPU_free(&state);
+        initializeProgram(program);
+        while (cpu.isRunning) {
+                executeFunction();
+        }
+        
+        Mem_freeMemory(&cpu.mem);
 }
 
 /*
  * Name      : CPU_new
- * Purpose   : Creates the CPU state that represents a new CPU
- * Parameter : (FILE *) input   -- The input stream to read input from
- *             (FILE *) output  -- The output stream to write output to
- * Return    : (CPU_State) The state of the new machine
- * Notes     : Keeps track of the input and output files
+ * Purpose   : Creates the CPU  that represents a new CPU
+ * Parameter : (FILE *) cpu.input   -- The cpu.input stream to read cpu.input from
+ *             (FILE *) cpu.output  -- The cpu.output stream to write cpu.output to
+ * Return    : (CPU_State) The  of the new machine
+ * Notes     : Keeps track of the cpu.input and cpu.output files
  */
-CPU_State CPU_new(FILE *input, FILE *output) {
-        CPU_State cpu = ALLOC(sizeof(*cpu));
-        cpu -> mem = Mem_new();
-        cpu -> input = input;
-        cpu -> output = output;
-        for (int i = 0; i < 8; i++) {
-                cpu -> registers[i] = 0;
-        }
-        cpu -> programCounter = 0;
-        cpu -> isRunning = true;
-        cpu -> mainInstructionSize = 0;
-        return cpu;
-}
+// CPU_State CPU_new(FILE *cpu.input, FILE *cpu.output) {
+//         CPU_State cpu = ALLOC(sizeof(*cpu));
+//         cpu -> cpu.mem = Mem_new();
+//         cpu -> cpu.input = cpu.input;
+//         cpu -> cpu.output = cpu.output;
+//         for (int i = 0; i < 8; i++) {
+//                 cpu -> cpu.registers[i] = 0;
+//         }
+//         cpu -> cpu.programCounter = 0;
+//         cpu -> cpu.isRunning = true;
+//         cpu -> cpu.mainInstructionSize = 0;
+//         return cpu;
+// }
 
 /*
  * Name      : CPU_free
  * Purpose   : Frees the CPU
- * Parameter : (CPU_State *) state -- The CPU_State to free
+ * Parameter : (CPU_State *)  -- The CPU_State to free
  * Return    : None
- * Notes     : Keeps track of the input and output files
+ * Notes     : Keeps track of the cpu.input and cpu.output files
  */
-void CPU_free(CPU_State *state) {
-        CPU_State cpu = *state;
-        Mem mem = cpu -> mem;
+// void CPU_free(CPU_State *) {
+//         CPU_State cpu = *;
+//         Mem cpu.mem = cpu -> cpu.mem;
 
-        Mem_freeMemory(&mem);
-        FREE(*state);
-}
+//         Mem_freeMemory(&cpu.mem);
+//         FREE(*);
+// }
 
 /*
  * Name      : initializeProgram
- * Purpose   : Loads the given instructions into the memory segment 0
- * Parameter : (CPU_State) state   -- The CPU to load the instructions into
+ * Purpose   : Loads the given instructions into the cpu.memory segment 0
+ * Parameter : (CPU_State)    -- The CPU to load the instructions into
  *             (FILE *)    program -- The program binary
  * Return    : None
- * Notes     : Will CRE if it runs out of memory;
+ * Notes     : Will CRE if it runs out of cpu.memory;
  *             Will CRE if reading the file fails
  */
 
-void initializeProgram(CPU_State state, FILE *program)
+void initializeProgram(FILE *program)
 {       
         Seq_T instructions = Seq_new(1024);
         unsigned char byte = fgetc(program);
@@ -174,7 +204,7 @@ void initializeProgram(CPU_State state, FILE *program)
         }
         
         Segment seg0 = Segment_new(Seq_length(instructions));
-        state -> mainInstructionSize = Segment_size(seg0);
+        cpu.mainInstructionSize = Segment_size(seg0);
         int index = 0;
         while (Seq_length(instructions) > 0)
         {
@@ -185,8 +215,7 @@ void initializeProgram(CPU_State state, FILE *program)
                 index++;
         }
 
-        Mem mem = state -> mem;
-        Mem_setSegment(mem, 0, seg0);
+        Mem_setSegment(cpu.mem, 0, seg0);
 
         Seq_free(&instructions);
 }
@@ -194,14 +223,14 @@ void initializeProgram(CPU_State state, FILE *program)
 /*
  * Name      : executeFunction
  * Purpose   : Fetches an instruction, then executes the instruction
- * Parameter : (CPU_State) state -- The current CPU state to modify/read/write
+ * Parameter : (CPU_State)  -- The current CPU  to modify/read/write
  * Return    : None
  * Notes     : Will CRE if it tried to read an instruction that was invalid
  */
-void executeFunction(CPU_State state)
+void executeFunction()
 {
-        uint32_t instruction = getInstruction(state);
-        if (!(state -> isRunning)) {
+        uint32_t instruction = getInstruction();
+        if (!(cpu.isRunning)) {
                 return;
         }
         
@@ -215,226 +244,218 @@ void executeFunction(CPU_State state)
         switch(instructionType) {
                 case CMOV:
                 // fprintf(stderr, "CMOV\n");
-                CPU_cmove(state, ra, rb, rc);
+                CPU_cmove(ra, rb, rc);
                 break;
 
                 case SEGLOAD:
                 // fprintf(stderr, "SEGLOAD\n");
-                CPU_segLoad(state, ra, rb, rc);
+                CPU_segLoad(ra, rb, rc);
                 break;
 
                 case SEGSTORE:
                 // fprintf(stderr, "SEGSTORE\n");
-                CPU_segStore(state, ra, rb, rc);
+                CPU_segStore(ra, rb, rc);
                 break;
 
                 case ADD:
                 // fprintf(stderr, "ADD r%u = r%u + r%u\n", ra, rb, rc);
-                CPU_add(state, ra, rb, rc);
+                CPU_add(ra, rb, rc);
                 break;
 
                 case MUL:
                 // fprintf(stderr, "MUL\n");
-                CPU_mult(state, ra, rb, rc);
+                CPU_mult(ra, rb, rc);
                 break;
 
                 case DIV:
                 // fprintf(stderr, "DIV\n");
-                CPU_div(state, ra, rb, rc);
+                CPU_div(ra, rb, rc);
                 break;
 
                 case NAND:
                 // fprintf(stderr, "NAND\n");
-                CPU_nand(state, ra, rb, rc);
+                CPU_nand(ra, rb, rc);
                 break;
 
                 case HALT:
                 // fprintf(stderr, "HALT\n");
-                CPU_halt(state);
+                CPU_halt();
                 break;
 
                 case MAPSEG:
                 // fprintf(stderr, "MAPSEG\n");
-                CPU_mapSeg(state, rb, rc);
+                CPU_mapSeg(rb, rc);
                 break;
 
                 case UNMAPSEG:
                 // fprintf(stderr, "UNMAPSEG\n");
-                CPU_unmapSeg(state, rc);
+                CPU_unmapSeg(rc);
                 break;
 
                 case OUT:
                 // fprintf(stderr, "OUT\n");
-                CPU_printOut(state, rc);
+                CPU_printOut(rc);
                 break;
 
                 case IN:
                 // fprintf(stderr, "IN\n");
-                CPU_readIn(state, rc);
+                CPU_readIn(rc);
                 break;
 
                 case LOADPROGRAM:
                 // fprintf(stderr, "LOADPROGRAM\n");
-                CPU_loadProgram(state, rb, rc);
+                CPU_loadProgram(rb, rc);
                 break;
 
                 case LOADVALUE:
                 // fprintf(stderr, "LOADVALUE r%u = %u\n", (instruction & rLoadBits) >> rLoadLsb, instruction & loadBits);
-                CPU_loadValue(state, instruction);
+                CPU_loadValue(instruction);
                 break;
 
                 default:
-                CPU_halt(state);
+                CPU_halt();
                 break;
         }
-        
+        // // Register Reader
+        // for (int i = 0; i < 8; i++) {
+        //         fprintf(stderr, "Register r%i := %i\n", i, cpu.registers[i]);
+        // }
 }
 
 /*
  * Name      : getInstruction
- * Purpose   : Gets the instruction from the memory and increments the 
- *             memory counter
- * Parameter : (CPU_State) state -- The CPU state with the memory to read
+ * Purpose   : Gets the instruction from the cpu.memory and increments the 
+ *             cpu.memory counter
+ * Parameter : (CPU_State)  -- The CPU  with the cpu.memory to read
  * Return    : (uint32_t) The 32-bit instruction
- * Notes     : Will return MAX value if the memory is out of bounds
+ * Notes     : Will return MAX value if the cpu.memory is out of bounds
  */
-uint32_t getInstruction(CPU_State state)
+uint32_t getInstruction()
 {
-        Mem mem = state -> mem;
-        
-        if (state -> programCounter >= state -> mainInstructionSize) {
-                state -> isRunning = false; 
+        if (cpu.programCounter >= cpu.mainInstructionSize) {
+                cpu.isRunning = false; 
                 return MAX_VALUE;
                 
         }
-        uint32_t instruction = Mem_getWord(mem, 0, state -> programCounter);
-        state -> programCounter++;
+        uint32_t instruction = Mem_getWord(cpu.mem, 0, cpu.programCounter);
+        cpu.programCounter++;
         return instruction;
 }
 
 /*
  * Name      : CPU_cmove
  * Purpose   : Moves rb into ra if rc is not 0
- * Parameter : (CPU_State) state -- The computer state to alter (with register)
+ * Parameter : (CPU_State)  -- The computer  to alter (with register)
  *             (uint32_t)  ra    -- Register A
  *             (uint32_t)  rb    -- Register B
  *             (uint32_t)  rc    -- Register C
  * Return    : None
- * Notes     : Alters the state of the CPU_State
+ * Notes     : Alters the  of the CPU_State
  */
- void CPU_cmove(CPU_State state, uint32_t ra, uint32_t rb, 
+ void CPU_cmove(uint32_t ra, uint32_t rb, 
                              uint32_t rc)
 {
-        uint32_t *registers = state -> registers;
-        if (registers[rc] == 0) {
+        if (cpu.registers[rc] == 0) {
                 return;
         }
-        registers[ra] = registers[rb];
+        cpu.registers[ra] = cpu.registers[rb];
 }
 
 /*
  * Name      : CPU_segLoad
- * Purpose   : Loads the word from memory in segment rb, word rc into ra
- * Parameter : (CPU_State) state -- The computer state to alter (with register)
+ * Purpose   : Loads the word from cpu.memory in segment rb, word rc into ra
+ * Parameter : (CPU_State)  -- The computer  to alter (with register)
  *             (uint32_t)  ra    -- Register A
  *             (uint32_t)  rb    -- Register B
  *             (uint32_t)  rc    -- Register C
  * Return    : None
- * Notes     : Alters the state of the CPU_State
+ * Notes     : Alters the  of the CPU_State
  */
- void CPU_segLoad(CPU_State state, uint32_t ra, uint32_t rb, 
+ void CPU_segLoad(uint32_t ra, uint32_t rb, 
                                uint32_t rc)
 {
-        uint32_t *registers = state -> registers;
-        Mem      mem        = state -> mem;
-        registers[ra] = Mem_getWord(mem, registers[rb], registers[rc]);
+        cpu.registers[ra] = Mem_getWord(cpu.mem, cpu.registers[rb], cpu.registers[rc]);
 }
 
 /*
  * Name      : CPU_segStore
  * Purpose   : Stores rc into segment ra, word rb
- * Parameter : (CPU_State) state -- The computer state to alter (with register)
+ * Parameter : (CPU_State)  -- The computer  to alter (with register)
  *             (uint32_t)  ra    -- Register A
  *             (uint32_t)  rb    -- Register B
  *             (uint32_t)  rc    -- Register C
  * Return    : None
- * Notes     : Alters the state of the CPU_State
+ * Notes     : Alters the  of the CPU_State
  */
- void CPU_segStore(CPU_State state, uint32_t ra, uint32_t rb, 
+ void CPU_segStore(uint32_t ra, uint32_t rb, 
                                 uint32_t rc)
 {
-        uint32_t *registers = state -> registers;
-        Mem       mem       = state -> mem;
-        Mem_setWord(mem, registers[ra], registers[rb], registers[rc]);
+        Mem_setWord(cpu.mem, cpu.registers[ra], cpu.registers[rb], cpu.registers[rc]);
 }
 
 /*
  * Name      : CPU_add
  * Purpose   : Moves rb + rc into ra
- * Parameter : (CPU_State) state -- The computer state to alter (with register)
+ * Parameter : (CPU_State)  -- The computer  to alter (with register)
  *             (uint32_t)  ra    -- Register A
  *             (uint32_t)  rb    -- Register B
  *             (uint32_t)  rc    -- Register C
  * Return    : None
- * Notes     : Alters the state of the CPU_State
+ * Notes     : Alters the  of the CPU_State
  */
- void CPU_add(CPU_State state, uint32_t ra, uint32_t rb, 
+ void CPU_add(uint32_t ra, uint32_t rb, 
                            uint32_t rc)
 {
-        uint32_t *registers = state -> registers;
-        registers[ra] = registers[rb] + registers[rc];
+        cpu.registers[ra] = cpu.registers[rb] + cpu.registers[rc];
 }
 
 /*
  * Name      : CPU_mult
  * Purpose   : Moves rb * rc into ra
- * Parameter : (CPU_State) state -- The computer state to alter (with register)
+ * Parameter : (CPU_State)  -- The computer  to alter (with register)
  *             (uint32_t)  ra    -- Register A
  *             (uint32_t)  rb    -- Register B
  *             (uint32_t)  rc    -- Register C
  * Return    : None
- * Notes     : Alters the state of the CPU_State
+ * Notes     : Alters the  of the CPU_State
  */
- void CPU_mult(CPU_State state, uint32_t ra, uint32_t rb, 
+ void CPU_mult(uint32_t ra, uint32_t rb, 
                             uint32_t rc)
 {
-        uint32_t *registers = state -> registers;
-        registers[ra] = registers[rb] * registers[rc];
+        cpu.registers[ra] = cpu.registers[rb] * cpu.registers[rc];
 }
 
 /*
  * Name      : CPU_div
  * Purpose   : Moves rb / rc into ra
- * Parameter : (CPU_State) state -- The computer state to alter (with register)
+ * Parameter : (CPU_State)  -- The computer  to alter (with register)
  *             (uint32_t)  ra    -- Register A
  *             (uint32_t)  rb    -- Register B
  *             (uint32_t)  rc    -- Register C
  * Return    : None
- * Notes     : Alters the state of the CPU_State;
+ * Notes     : Alters the  of the CPU_State;
  *             Will CRE if rc is 0
  */
- void CPU_div(CPU_State state, uint32_t ra, uint32_t rb, 
+ void CPU_div(uint32_t ra, uint32_t rb, 
                            uint32_t rc)
 {
-        uint32_t *registers = state -> registers;
-        registers[ra] = registers[rb] / registers[rc];
+        cpu.registers[ra] = cpu.registers[rb] / cpu.registers[rc];
 }
 
 /*
  * Name      : CPU_nand
  * Purpose   : Moves rb nand rc into ra
- * Parameter : (CPU_State) state -- The computer state to alter (with register)
+ * Parameter : (CPU_State)  -- The computer  to alter (with register)
  *             (uint32_t)  ra    -- Register A
  *             (uint32_t)  rb    -- Register B
  *             (uint32_t)  rc    -- Register C
  * Return    : None
- * Notes     : Alters the state of the CPU_State
+ * Notes     : Alters the  of the CPU_State
  */
- void CPU_nand(CPU_State state, uint32_t ra, uint32_t rb, 
+ void CPU_nand(uint32_t ra, uint32_t rb, 
                             uint32_t rc)
 {
-        uint32_t *registers = state -> registers;
-        registers[ra] = ~(registers[rb] & registers[rc]);
+        cpu.registers[ra] = ~(cpu.registers[rb] & cpu.registers[rc]);
 
 }
 
@@ -443,84 +464,71 @@ uint32_t getInstruction(CPU_State state)
  * Purpose   : Stops the program
  * Parameter : None
  * Return    : None
- * Notes     : Alters the state of the CPU_State
+ * Notes     : Alters the  of the CPU_State
  */
- void CPU_halt(CPU_State state)
+ void CPU_halt()
 {
-        state -> isRunning = false;
+        cpu.isRunning = false;
 }
 
 /*
  * Name      : CPU_mapSeg
  * Purpose   : Makes a new segment with size rc, and stores the segmentID in rb
- * Parameter : (CPU_State) state -- The computer state to alter (with register)
+ * Parameter : (CPU_State)  -- The computer  to alter (with register)
  *             (uint32_t)  rb    -- Register B
  *             (uint32_t)  rc    -- Register C
  * Return    : None
- * Notes     : Alters the state of the CPU_State
+ * Notes     : Alters the  of the CPU_State
  */
- void CPU_mapSeg(CPU_State state, uint32_t rb, uint32_t rc)
+ void CPU_mapSeg(uint32_t rb, uint32_t rc)
 {
-        uint32_t *registers = state -> registers;
-        Mem      mem        = state -> mem;
-
-        registers[rb] = Mem_mapNew(mem, registers[rc]);
+        cpu.registers[rb] = Mem_mapNew(cpu.mem, cpu.registers[rc]);
 }
 
 /*
  * Name      : CPU_unmapSeg
  * Purpose   : Frees segment rc
- * Parameter : (CPU_State) state -- The computer state to alter (with register)
+ * Parameter : (CPU_State)  -- The computer  to alter (with register)
  *             (uint32_t)  rc    -- Register C
  * Return    : None
- * Notes     : Alters the state of the CPU_State
+ * Notes     : Alters the  of the CPU_State
  */
- void CPU_unmapSeg(CPU_State state, uint32_t rc)
+ void CPU_unmapSeg(uint32_t rc)
 {
-        uint32_t *registers = state -> registers;
-        Mem      mem        = state -> mem;
-
-        Mem_mapFree(mem, registers[rc]);
+        Mem_mapFree(cpu.mem, cpu.registers[rc]);
 }
 
 /*
  * Name      : CPU_printOut
  * Purpose   : Prints the character at rc
- * Parameter : (CPU_State) state -- The computer state to alter (with register)
+ * Parameter : (CPU_State)  -- The computer  to alter (with register)
  *             (uint32_t)  rc    -- Register C
  * Return    : None
- * Notes     : Uses the output file from when CPU was initialized
+ * Notes     : Uses the cpu.output file from when CPU was initialized
  */
- void CPU_printOut(CPU_State state, uint32_t rc)
+ void CPU_printOut(uint32_t rc)
 {
-        uint32_t *registers = state -> registers;
-        FILE     *output    = state -> output;
-
-        char printChar = registers[rc];
-        fprintf(output, "%c", printChar);
+        char printChar = cpu.registers[rc];
+        fprintf(cpu.output, "%c", printChar);
 }
 
 /*
  * Name      : CPU_readIn
- * Purpose   : Sets rc to the value of given input character
- * Parameter : (CPU_State) state -- The computer state to alter (with register)
+ * Purpose   : Sets rc to the value of given cpu.input character
+ * Parameter : (CPU_State)  -- The computer  to alter (with register)
  *             (uint32_t)  rc    -- Register C
  * Return    : None
- * Notes     : Alters the state of the CPU_State;
- *             Uses the input file from when CPU_State was initialized
+ * Notes     : Alters the  of the CPU_State;
+ *             Uses the cpu.input file from when CPU_State was initialized
  */
- void CPU_readIn(CPU_State state, uint32_t rc)
+ void CPU_readIn(uint32_t rc)
 {
-        uint32_t *registers = state -> registers;
-        FILE     *input     = state -> input;
-
-        
-        int charVal = fgetc(input);
+        int charVal = fgetc(cpu.input);
         if (charVal != -1) {
-                registers[rc] = charVal;
+                cpu.registers[rc] = charVal;
         }
         else {
-                registers[rc] = MAX_VALUE;
+                cpu.registers[rc] = MAX_VALUE;
         }
         
 }
@@ -529,42 +537,38 @@ uint32_t getInstruction(CPU_State state)
  * Name      : CPU_loadProgram
  * Purpose   : Loads a copy of segment rb into segment 0, then sets the 
  *             program counter to rc
- * Parameter : (CPU_State) state -- The computer state to alter (with register)
+ * Parameter : (CPU_State)  -- The computer  to alter (with register)
  *             (uint32_t)  rb    -- Register B
  *             (uint32_t)  rc    -- Register C
  * Return    : None
- * Notes     : Alters the state of the CPU_State
+ * Notes     : Alters the  of the CPU_State
  */
- void CPU_loadProgram(CPU_State state, uint32_t rb, uint32_t rc)
+ void CPU_loadProgram(uint32_t rb, uint32_t rc)
 {
-        uint32_t *registers = state -> registers;
-        Mem      mem        = state -> mem;
+        cpu.programCounter = cpu.registers[rc];
 
-        state -> programCounter = registers[rc];
-
-        if (registers[rb] == 0) {
+        if (cpu.registers[rb] == 0) {
                 return;
         }
 
-        Segment seg  = Mem_getSegment(mem, registers[rb]);
+        Segment seg  = Mem_getSegment(cpu.mem, cpu.registers[rb]);
         Segment copy = Segment_copy(seg);
-        state -> mainInstructionSize = Segment_size(copy);
-        Mem_setSegment(mem, 0, copy);
+        cpu.mainInstructionSize = Segment_size(copy);
+        Mem_setSegment(cpu.mem, 0, copy);
 }
 
 /*
  * Name      : CPU_loadValue
  * Purpose   : Loads a given value into rL 
- * Parameter : (CPU_State) state -- The computer state to alter (with register)
+ * Parameter : (CPU_State)  -- The computer  to alter (with register)
  * Return    : None
- * Notes     : Alters the state of the CPU_State;
+ * Notes     : Alters the  of the CPU_State;
  */
- void CPU_loadValue(CPU_State state, uint32_t instruction)
+ void CPU_loadValue(uint32_t instruction)
 {
         uint32_t rL = (instruction & rLoadBits) >> rLoadLsb;
         uint32_t loadVal = instruction & loadBits;
-        uint32_t *registers = state -> registers;
-        registers[rL] = loadVal;
+        cpu.registers[rL] = loadVal;
 }
 
 #undef MAX_VALUE 
