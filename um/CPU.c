@@ -7,12 +7,13 @@
  *   Editors    : Matthew Wong (mwong14), Ivi Fung (sfung02)
  */
 
-#include "Memory.h"
+// #include "Memory.h"
 #include <stdint.h>
 #include <mem.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <seq.h>
+// #include "Segment.h"
 // #include <assert.h>
 
 #define MAX_VALUE 0xffffffff
@@ -46,6 +47,39 @@
  * Purpose : Represents the current state of the computer at any given time
  * Notes   : Only used inside of CPU
  */
+
+
+
+#define START_SIZE 256
+
+typedef uint32_t Word;
+typedef struct Segment {
+        Word *words;
+        uint32_t size;
+} *Segment;
+
+Segment Segment_new();
+Segment Segment_copy(Segment seg);
+void Segment_free(Segment *seg);
+uint32_t Segment_size(Segment seg);
+Word Segment_getWord(Segment seg, uint32_t position);
+void Segment_setWord(Segment seg, uint32_t position, Word word);
+
+typedef uint32_t SegmentID;
+typedef struct Mem {
+        // Seq_T segments;
+        // Seq_T nextSeenSegID;
+        Segment  *segments;
+        uint32_t  segmentsSize;
+        uint32_t  segmentsCapacity;
+
+        uint32_t *nextSeenSegID;
+        uint32_t  nextSeenCapacity;
+        uint32_t  nextSeenSize;
+} *Mem;
+
+
+
 typedef struct CPU_State {
         Mem mem;
         FILE *input;
@@ -62,31 +96,243 @@ void runProgram(FILE *input, FILE *output, FILE *program);
 CPU_State CPU_new(FILE *input, FILE *output);
 void CPU_free(CPU_State *state);
 void initializeProgram(CPU_State state, FILE *program);
-
-uint32_t getInstruction(CPU_State state);
 void executeFunction(CPU_State state);
 
- void CPU_cmove(CPU_State state, uint32_t ra, uint32_t rb, 
-                             uint32_t rc);
- void CPU_segLoad(CPU_State state, uint32_t ra, uint32_t rb, 
-                               uint32_t rc);
- void CPU_segStore(CPU_State state, uint32_t ra, uint32_t rb, 
-                                uint32_t rc);
- void CPU_add(CPU_State state, uint32_t ra, uint32_t rb, 
-                           uint32_t rc);
- void CPU_mult(CPU_State state, uint32_t ra, uint32_t rb, 
-                            uint32_t rc);
- void CPU_div(CPU_State state, uint32_t ra, uint32_t rb, 
-                           uint32_t rc);
- void CPU_nand(CPU_State state, uint32_t ra, uint32_t rb, 
-                            uint32_t rc);
- void CPU_halt(CPU_State state);
- void CPU_mapSeg(CPU_State state, uint32_t rb, uint32_t rc);
- void CPU_unmapSeg(CPU_State state, uint32_t rc);
- void CPU_printOut(CPU_State state, uint32_t rc);
- void CPU_readIn(CPU_State state, uint32_t rc);
- void CPU_loadProgram(CPU_State state, uint32_t rb, uint32_t rc);
+ void CPU_cmove(CPU_State state, uint32_t instruction);
+ void CPU_segLoad(CPU_State state, uint32_t instruction);
+ void CPU_segStore(CPU_State state, uint32_t instruction);
+ void CPU_add(CPU_State state, uint32_t instruction);
+ void CPU_mult(CPU_State state, uint32_t instruction);
+ void CPU_div(CPU_State state, uint32_t instruction);
+ void CPU_nand(CPU_State state, uint32_t instruction);
+ void CPU_mapSeg(CPU_State state, uint32_t instruction);
+ void CPU_unmapSeg(CPU_State state, uint32_t instruction);
+ void CPU_printOut(CPU_State state, uint32_t instruction);
+ void CPU_readIn(CPU_State state, uint32_t instruction);
+ void CPU_loadProgram(CPU_State state, uint32_t instruction);
  void CPU_loadValue(CPU_State state, uint32_t instruction);
+
+
+Mem Mem_new();
+void Mem_freeMemory(Mem *mem);
+Segment Mem_getSegment(Mem mem, uint32_t segID);
+void Mem_setSegment(Mem mem, uint32_t segID, Segment seg);
+Word Mem_getWord(Mem mem, uint32_t segID, uint32_t wordID);
+void Mem_setWord(Mem mem, uint32_t segID, uint32_t wordID, 
+                    uint32_t value);
+SegmentID Mem_mapNew(Mem mem, uint32_t seg);
+void Mem_mapFree(Mem mem, uint32_t segID);
+
+void expandSegments(Mem mem);
+void expandNextSeen(Mem mem);
+
+void expandSegments(Mem mem)
+{
+        
+        uint32_t size        = mem -> segmentsCapacity;
+        uint32_t newSize     = 2 * size;
+        Segment *newSegments = CALLOC(newSize, sizeof(Segment));
+        Segment *segments    = mem -> segments;
+        for (uint32_t i = 0; i < size; i++) {
+                newSegments[i] = segments[i];
+        }
+        FREE(mem -> segments);
+        mem -> segments = newSegments;
+        mem -> segmentsCapacity = newSize;
+}
+void expandNextSeen(Mem mem)
+{
+        
+        uint32_t  size        = mem -> nextSeenCapacity;
+        uint32_t  newSize     = 2 * size;
+        uint32_t *newNextSeen = CALLOC(newSize, sizeof(uint32_t));
+        uint32_t *nextSeen    = mem -> nextSeenSegID;
+
+        for (uint32_t i = 0; i < size; i++) {
+                newNextSeen[i] = nextSeen[i];
+        }
+        FREE(mem -> nextSeenSegID);
+        mem -> nextSeenSegID = newNextSeen;
+        mem -> nextSeenCapacity  = newSize;
+}
+
+
+/*
+ *  Name      : Mem_new
+ *  Purpose   : Creates a new memory representation
+ *  Parameters: (None)
+ *  Returns   : (None)
+ *  Notes     : Will CRE on failure to allocate memory
+ *              
+ */
+Mem Mem_new() 
+{
+        Mem mem  = ALLOC(sizeof(*mem));
+        mem -> segments     = CALLOC(START_SIZE, sizeof(Segment));
+        mem -> segments[0]  = Segment_new(0);
+        mem -> segmentsCapacity = START_SIZE;
+        mem -> segmentsSize = 1;
+
+        mem -> nextSeenSegID = CALLOC(START_SIZE, sizeof(uint32_t));
+        mem -> nextSeenCapacity  = START_SIZE;
+        mem -> nextSeenSize = 0;
+
+        return mem;
+}
+
+/*
+ * Name      : Mem_freeMemory
+ * Purpose   : Frees the memory representation
+ * Parameter : (Mem *) mem -- The pointer to the Mem to free
+ * Return    : None
+ * Notes     : Will CRE if mem is null or *mem is null;
+ *             Will set the value in mem to NULL
+ */
+void Mem_freeMemory(Mem *mem)
+{
+        Mem memory = *mem;
+        uint32_t size = memory -> segmentsSize;
+        Segment *segments = memory -> segments;
+        for (uint32_t i = 0; i < size; i++) {
+                if (segments[i] == NULL) {
+                        continue;
+                } 
+                Segment_free(&segments[i]);
+        }
+
+        FREE(memory -> segments);
+        FREE(memory -> nextSeenSegID);
+        FREE(*mem); 
+}
+
+/*
+ * Name      : Mem_getSegment
+ * Purpose   : Gets the full segment at a given memory id
+ * Parameter : (Mem) mem -- The memory block containing the segment
+ *             (uint32_t) segID -- The 32-bit memory identifier of the segment
+ * Return    : None
+ * Notes     : Will CRE if mem is NULL or the segID is greater than the 
+ *             memory size
+ */
+Segment Mem_getSegment(Mem mem, uint32_t segID) 
+{
+        
+        return mem -> segments[segID];
+}
+
+/*
+ * Name      : Mem_setSegment
+ * Purpose   : Sets the segment in memory to a given value
+ * Parameter : (Mem) mem -- The memory block containing the segment
+ *             (uint32_t) segID -- The 32-bit memory identifier of the segment
+ *             (Segment) seg -- The value to set the segment to
+ * Return    : None
+ * Notes     : Will CRE if mem is NULL 
+ */
+void Mem_setSegment(Mem mem, uint32_t segID, Segment seg) 
+{
+        Segment_free(&(mem -> segments[segID]));
+        mem -> segments[segID] = seg;
+        
+}
+
+/*
+ * Name      : Mem_getWord
+ * Purpose   : Gets the word at a given position in a given memory segment
+ * Parameter : (Mem) mem -- The memory block containing the segment
+ *             (uint32_t) segID -- The memory identifier of the segment
+ *             (uint32_t) wordID -- The word identifier within the segment
+ * Return    : None
+ * Notes     : Will CRE if mem is NULL or the segID is greater than the 
+ *             memory size
+ */
+Word Mem_getWord(Mem mem, uint32_t segID, uint32_t wordID) 
+{
+        
+        return Segment_getWord(mem -> segments[segID], wordID);
+}
+
+/*
+ * Name      : Mem_setWord
+ * Purpose   : Sets the word at a given position in a given memory segment
+ * Parameter : (Mem) mem -- The memory block containing the segment
+ *             (uint32_t) segID -- The memory identifier of the segment
+ *             (uint32_t) wordID -- The word identifier within the segment
+ *             (uint32_t) value -- The value to set the word to
+ * Return    : None
+ * Notes     : Will CRE if mem is NULL or the segID is greater than the 
+ *             memory size
+ */
+void Mem_setWord(Mem mem, uint32_t segID, uint32_t wordID, 
+                    uint32_t value) 
+{
+        Segment_setWord(mem -> segments[segID], wordID, value);
+}
+
+/*
+ * Name      : Mem_mapNew
+ * Purpose   : Creates a new segment in memory
+ * Parameter : (Mem) mem -- The memory block to add the segment to
+ *             (uint32_t) size -- Size of the segment to add
+ * Return    : None
+ * Notes     : Will CRE if mem is NULL
+ */
+SegmentID Mem_mapNew(Mem mem, uint32_t size) 
+{
+        
+        if (mem -> nextSeenSize == 0) {
+                if (mem -> segmentsCapacity == mem -> segmentsSize) {
+                        expandSegments(mem);
+                }
+                mem -> segments[mem -> segmentsSize] = Segment_new(size);
+                uint32_t index = mem -> segmentsSize;
+                mem -> segmentsSize++;
+                return index;
+        }
+        mem -> nextSeenSize--;
+        uint32_t nextPosition = mem -> nextSeenSize; 
+        uint32_t index = mem -> nextSeenSegID[nextPosition];
+        mem -> segments[index] = Segment_new(size);
+        return index;
+
+        // /* uses an unused segment ID if they exist in memory */
+        // if (Seq_length(mem -> nextSeenSegID) > 0) { 
+        //         uint32_t index = 
+        //                 (uint32_t)(uintptr_t)Seq_remlo(mem -> nextSeenSegID);
+        //         Seq_put(mem -> segments, index, Segment_new(size));
+        //         return index; 
+        // }
+        // else { /* otherwise creates a completely new segment ID */
+        //         Seq_addhi(mem -> segments, Segment_new(size));
+        // }
+        // return Seq_length(mem -> segments) - 1;
+}
+
+/*
+ * Name      : Mem_mapFree
+ * Purpose   : Frees a segment in memory
+ * Parameter : (Mem) mem -- The memory block with the segment to free
+ *             (Segment) seg -- The 32-bit memory identifier of the segment
+ * Return    : None
+ * Notes     : Will CRE if mem is NULL or the segID is greater than the 
+ *             memory size
+ */
+void Mem_mapFree(Mem mem, uint32_t segID) 
+{
+        
+        Segment_free(&(mem -> segments[segID]));
+        uint32_t nextPos = mem -> nextSeenSize;
+        if (mem -> nextSeenCapacity == nextPos) {
+                expandNextSeen(mem);
+        }
+        mem -> nextSeenSegID[nextPos] = segID;
+        mem -> nextSeenSize++;
+        // Segment seg = Seq_get(mem -> segments, segID);
+        // Segment_free(&seg);
+        // Seq_put(mem -> segments, segID, NULL);
+        // Seq_addhi(mem -> nextSeenSegID, (void *)(uintptr_t)segID);
+}
+
 
 /*
  * Name      : runProgram
@@ -200,82 +446,80 @@ void initializeProgram(CPU_State state, FILE *program)
  */
 void executeFunction(CPU_State state)
 {
-        uint32_t instruction = getInstruction(state);
-        if (!(state -> isRunning)) {
-                return;
+        // GET INSTRUCTION 
+        if (state -> programCounter >= state -> mainInstructionSize) {
+                state -> isRunning = false;
+                return; 
         }
-        
+        uint32_t instruction = Mem_getWord(state -> mem, 0, state -> programCounter);
+        state -> programCounter++;
 
+        // END OF GET INSTRUCTION
         uint32_t instructionType = instruction & instructionBits;
-
-        uint32_t ra = (instruction & raBits) >> raLsb;
-        uint32_t rb = (instruction & rbBits) >> rbLsb;
-        uint32_t rc = instruction & rcBits;
 
         switch(instructionType) {
                 case CMOV:
                 // fprintf(stderr, "CMOV\n");
-                CPU_cmove(state, ra, rb, rc);
+                CPU_cmove(state, instruction);
                 break;
 
                 case SEGLOAD:
                 // fprintf(stderr, "SEGLOAD\n");
-                CPU_segLoad(state, ra, rb, rc);
+                CPU_segLoad(state, instruction);
                 break;
 
                 case SEGSTORE:
                 // fprintf(stderr, "SEGSTORE\n");
-                CPU_segStore(state, ra, rb, rc);
+                CPU_segStore(state, instruction);
                 break;
 
                 case ADD:
                 // fprintf(stderr, "ADD r%u = r%u + r%u\n", ra, rb, rc);
-                CPU_add(state, ra, rb, rc);
+                CPU_add(state, instruction);
                 break;
 
                 case MUL:
                 // fprintf(stderr, "MUL\n");
-                CPU_mult(state, ra, rb, rc);
+                CPU_mult(state, instruction);
                 break;
 
                 case DIV:
                 // fprintf(stderr, "DIV\n");
-                CPU_div(state, ra, rb, rc);
+                CPU_div(state, instruction);
                 break;
 
                 case NAND:
                 // fprintf(stderr, "NAND\n");
-                CPU_nand(state, ra, rb, rc);
+                CPU_nand(state, instruction);
                 break;
 
-                case HALT:
-                // fprintf(stderr, "HALT\n");
-                CPU_halt(state);
-                break;
+                // case HALT:
+                // return; 
+                // break;
 
                 case MAPSEG:
                 // fprintf(stderr, "MAPSEG\n");
-                CPU_mapSeg(state, rb, rc);
+                CPU_mapSeg(state, instruction);
                 break;
 
                 case UNMAPSEG:
                 // fprintf(stderr, "UNMAPSEG\n");
-                CPU_unmapSeg(state, rc);
+                CPU_unmapSeg(state, instruction);
                 break;
 
                 case OUT:
                 // fprintf(stderr, "OUT\n");
-                CPU_printOut(state, rc);
+                CPU_printOut(state, instruction);
                 break;
 
                 case IN:
                 // fprintf(stderr, "IN\n");
-                CPU_readIn(state, rc);
+                CPU_readIn(state, instruction);
                 break;
 
                 case LOADPROGRAM:
                 // fprintf(stderr, "LOADPROGRAM\n");
-                CPU_loadProgram(state, rb, rc);
+                CPU_loadProgram(state, instruction);
                 break;
 
                 case LOADVALUE:
@@ -284,32 +528,11 @@ void executeFunction(CPU_State state)
                 break;
 
                 default:
-                CPU_halt(state);
+                state -> isRunning = false;
+                return; 
                 break;
         }
         
-}
-
-/*
- * Name      : getInstruction
- * Purpose   : Gets the instruction from the memory and increments the 
- *             memory counter
- * Parameter : (CPU_State) state -- The CPU state with the memory to read
- * Return    : (uint32_t) The 32-bit instruction
- * Notes     : Will return MAX value if the memory is out of bounds
- */
-uint32_t getInstruction(CPU_State state)
-{
-        Mem mem = state -> mem;
-        
-        if (state -> programCounter >= state -> mainInstructionSize) {
-                state -> isRunning = false; 
-                return MAX_VALUE;
-                
-        }
-        uint32_t instruction = Mem_getWord(mem, 0, state -> programCounter);
-        state -> programCounter++;
-        return instruction;
 }
 
 /*
@@ -322,9 +545,12 @@ uint32_t getInstruction(CPU_State state)
  * Return    : None
  * Notes     : Alters the state of the CPU_State
  */
- void CPU_cmove(CPU_State state, uint32_t ra, uint32_t rb, 
-                             uint32_t rc)
+ void CPU_cmove(CPU_State state, uint32_t instruction)
 {
+        uint32_t ra = (instruction & raBits) >> raLsb;
+        uint32_t rb = (instruction & rbBits) >> rbLsb;
+        uint32_t rc = instruction & rcBits;
+
         uint32_t *registers = state -> registers;
         if (registers[rc] == 0) {
                 return;
@@ -342,9 +568,12 @@ uint32_t getInstruction(CPU_State state)
  * Return    : None
  * Notes     : Alters the state of the CPU_State
  */
- void CPU_segLoad(CPU_State state, uint32_t ra, uint32_t rb, 
-                               uint32_t rc)
+ void CPU_segLoad(CPU_State state, uint32_t instruction)
 {
+        uint32_t ra = (instruction & raBits) >> raLsb;
+        uint32_t rb = (instruction & rbBits) >> rbLsb;
+        uint32_t rc = instruction & rcBits;
+
         uint32_t *registers = state -> registers;
         Mem      mem        = state -> mem;
         registers[ra] = Mem_getWord(mem, registers[rb], registers[rc]);
@@ -360,9 +589,12 @@ uint32_t getInstruction(CPU_State state)
  * Return    : None
  * Notes     : Alters the state of the CPU_State
  */
- void CPU_segStore(CPU_State state, uint32_t ra, uint32_t rb, 
-                                uint32_t rc)
+ void CPU_segStore(CPU_State state, uint32_t instruction)
 {
+        uint32_t ra = (instruction & raBits) >> raLsb;
+        uint32_t rb = (instruction & rbBits) >> rbLsb;
+        uint32_t rc = instruction & rcBits;
+
         uint32_t *registers = state -> registers;
         Mem       mem       = state -> mem;
         Mem_setWord(mem, registers[ra], registers[rb], registers[rc]);
@@ -378,9 +610,12 @@ uint32_t getInstruction(CPU_State state)
  * Return    : None
  * Notes     : Alters the state of the CPU_State
  */
- void CPU_add(CPU_State state, uint32_t ra, uint32_t rb, 
-                           uint32_t rc)
+ void CPU_add(CPU_State state, uint32_t instruction)
 {
+        uint32_t ra = (instruction & raBits) >> raLsb;
+        uint32_t rb = (instruction & rbBits) >> rbLsb;
+        uint32_t rc = instruction & rcBits;
+
         uint32_t *registers = state -> registers;
         registers[ra] = registers[rb] + registers[rc];
 }
@@ -395,9 +630,12 @@ uint32_t getInstruction(CPU_State state)
  * Return    : None
  * Notes     : Alters the state of the CPU_State
  */
- void CPU_mult(CPU_State state, uint32_t ra, uint32_t rb, 
-                            uint32_t rc)
+ void CPU_mult(CPU_State state, uint32_t instruction)
 {
+        uint32_t ra = (instruction & raBits) >> raLsb;
+        uint32_t rb = (instruction & rbBits) >> rbLsb;
+        uint32_t rc = instruction & rcBits;
+
         uint32_t *registers = state -> registers;
         registers[ra] = registers[rb] * registers[rc];
 }
@@ -413,9 +651,12 @@ uint32_t getInstruction(CPU_State state)
  * Notes     : Alters the state of the CPU_State;
  *             Will CRE if rc is 0
  */
- void CPU_div(CPU_State state, uint32_t ra, uint32_t rb, 
-                           uint32_t rc)
+ void CPU_div(CPU_State state, uint32_t instruction)
 {
+        uint32_t ra = (instruction & raBits) >> raLsb;
+        uint32_t rb = (instruction & rbBits) >> rbLsb;
+        uint32_t rc = instruction & rcBits;
+
         uint32_t *registers = state -> registers;
         registers[ra] = registers[rb] / registers[rc];
 }
@@ -430,25 +671,17 @@ uint32_t getInstruction(CPU_State state)
  * Return    : None
  * Notes     : Alters the state of the CPU_State
  */
- void CPU_nand(CPU_State state, uint32_t ra, uint32_t rb, 
-                            uint32_t rc)
+ void CPU_nand(CPU_State state, uint32_t instruction)
 {
+        uint32_t ra = (instruction & raBits) >> raLsb;
+        uint32_t rb = (instruction & rbBits) >> rbLsb;
+        uint32_t rc = instruction & rcBits;
+
         uint32_t *registers = state -> registers;
         registers[ra] = ~(registers[rb] & registers[rc]);
 
 }
 
-/*
- * Name      : CPU_halt
- * Purpose   : Stops the program
- * Parameter : None
- * Return    : None
- * Notes     : Alters the state of the CPU_State
- */
- void CPU_halt(CPU_State state)
-{
-        state -> isRunning = false;
-}
 
 /*
  * Name      : CPU_mapSeg
@@ -459,8 +692,11 @@ uint32_t getInstruction(CPU_State state)
  * Return    : None
  * Notes     : Alters the state of the CPU_State
  */
- void CPU_mapSeg(CPU_State state, uint32_t rb, uint32_t rc)
+ void CPU_mapSeg(CPU_State state, uint32_t instruction)
 {
+        uint32_t rb = (instruction & rbBits) >> rbLsb;
+        uint32_t rc = instruction & rcBits;
+
         uint32_t *registers = state -> registers;
         Mem      mem        = state -> mem;
 
@@ -475,8 +711,10 @@ uint32_t getInstruction(CPU_State state)
  * Return    : None
  * Notes     : Alters the state of the CPU_State
  */
- void CPU_unmapSeg(CPU_State state, uint32_t rc)
+ void CPU_unmapSeg(CPU_State state, uint32_t instruction)
 {
+        uint32_t rc = instruction & rcBits;
+
         uint32_t *registers = state -> registers;
         Mem      mem        = state -> mem;
 
@@ -491,8 +729,10 @@ uint32_t getInstruction(CPU_State state)
  * Return    : None
  * Notes     : Uses the output file from when CPU was initialized
  */
- void CPU_printOut(CPU_State state, uint32_t rc)
+ void CPU_printOut(CPU_State state, uint32_t instruction)
 {
+        uint32_t rc = instruction & rcBits;
+
         uint32_t *registers = state -> registers;
         FILE     *output    = state -> output;
 
@@ -509,8 +749,10 @@ uint32_t getInstruction(CPU_State state)
  * Notes     : Alters the state of the CPU_State;
  *             Uses the input file from when CPU_State was initialized
  */
- void CPU_readIn(CPU_State state, uint32_t rc)
+ void CPU_readIn(CPU_State state, uint32_t instruction)
 {
+        uint32_t rc = instruction & rcBits;
+
         uint32_t *registers = state -> registers;
         FILE     *input     = state -> input;
 
@@ -535,8 +777,11 @@ uint32_t getInstruction(CPU_State state)
  * Return    : None
  * Notes     : Alters the state of the CPU_State
  */
- void CPU_loadProgram(CPU_State state, uint32_t rb, uint32_t rc)
+ void CPU_loadProgram(CPU_State state, uint32_t instruction)
 {
+        uint32_t rb = (instruction & rbBits) >> rbLsb;
+        uint32_t rc = instruction & rcBits;
+
         uint32_t *registers = state -> registers;
         Mem      mem        = state -> mem;
 
@@ -568,6 +813,110 @@ uint32_t getInstruction(CPU_State state)
         registers[rL] = loadVal;
 }
 
+
+/*
+ * Name      : Segment_new
+ * Purpose   : Creates new segment for the UM memory
+ * Parameter : (uint32_t) size -- The number of words in the segment
+ * Return    : (Segment) The struct representing a specific segment of memory
+ * Notes     : Will CRE if it does not have enough memory to allocate
+ */
+Segment Segment_new(uint32_t size)
+{
+        Segment seg  = ALLOC(sizeof(*seg));
+
+        seg -> size  = size;
+        if (size > 0) {
+                seg -> words = CALLOC(size, sizeof(Word));
+        } 
+        else {
+                seg -> words = NULL;
+        } 
+        
+        return seg;
+}
+
+/*
+ * Name      : Segment_copy
+ * Purpose   : Creates a copy of the given segment
+ * Parameter : (Segment) seg -- The segment to copy
+ * Return    : (Segment) The struct representing the copy of the segment
+ * Notes     : Will CRE if the given segment is null;
+ *             Will CRE if it does not have enough memory to allocate
+ */
+Segment Segment_copy(Segment seg)
+{
+        uint32_t size = seg -> size;
+        Segment newSeg = Segment_new(size);
+
+        for (uint32_t wordIndex = 0; wordIndex < size; wordIndex++) {
+                newSeg -> words[wordIndex] = seg -> words[wordIndex];
+        }
+
+        return newSeg;
+
+}
+
+/*
+ * Name      : Segment_free
+ * Purpose   : Frees segment of the UM memory
+ * Parameter : (Segment *) seg -- The pointer to the segment to free
+ * Return    : None
+ * Notes     : Will CRE if seg is null or *seg is null;
+ *             Will set the value in seg to NULL
+ */
+void Segment_free(Segment *seg)
+{
+        Segment segment = *seg;
+        
+        if (segment -> words != NULL) {
+                FREE(segment -> words);
+        }
+
+        FREE(*seg);
+}
+
+/*
+ * Name      : Segment_size
+ * Purpose   : Gets the size of the segment
+ * Parameter : (Segment) seg -- The segment to check the size of 
+ * Return    : (uint32_t) The size of the segment
+ * Notes     : Will CRE if seg is NULL
+ */
+uint32_t Segment_size(Segment seg)
+{
+        return seg -> size;
+}
+
+/*
+ * Name      : Segment_getWord
+ * Purpose   : Gets the word at a given position within the segment
+ * Parameter : (Segment)  seg      -- The segment to get word from
+ *             (uint32_t) position -- Position to access
+ * Return    : (Word)     The word that was located at the given position
+ * Notes     : Will CRE if seg is NULL or the position is greater than the 
+ *                 segment size
+ */
+Word Segment_getWord(Segment seg, uint32_t position)
+{
+        return seg -> words[position];
+}
+
+/*
+ * Name      : Segment_setWord
+ * Purpose   : Sets the word at a given position within the segment
+ * Parameter : (Segment)  seg      -- The segment to set word in
+ *             (uint32_t) position -- Position to access
+ *             (Word)     word     -- Word to place at the position
+ * Return    : None
+ * Notes     : Will CRE if seg is NULL or the position is greater than the 
+ *                 segment size
+ */
+void Segment_setWord(Segment seg, uint32_t position, Word word)
+{
+        seg -> words[position] = word;
+}
+
 #undef MAX_VALUE 
 
 #undef loadBits 
@@ -594,3 +943,4 @@ uint32_t getInstruction(CPU_State state)
 #undef IN           
 #undef LOADPROGRAM  
 #undef LOADVALUE    
+#undef START_SIZE
