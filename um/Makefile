@@ -27,7 +27,7 @@ MODULES = CPU.o # Memory.o Segment.o
 
 ############### Rules ###############
 
-all: um test makeTests
+all: um # test makeTests
 
 ## Compile step (.c files -> .o files)
 
