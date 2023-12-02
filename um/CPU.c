@@ -134,9 +134,8 @@ void expandSegments(Mem mem)
         Segment *newSegments = CALLOC(newSize, sizeof(Segment));
         Segment *segments    = mem -> segments;
         for (uint32_t i = 0; i < size; i++) {
-                newSegments[i].words = segments[i].words,
+                newSegments[i].words = segments[i].words;
                 newSegments[i].size  = segments[i].size;
-                
         }
         FREE(mem -> segments);
         mem -> segments = newSegments;
@@ -285,24 +284,38 @@ void Mem_freeMemory(Mem *mem)
  */
 SegmentID Mem_mapNew(Mem mem, uint32_t size) 
 {
+        // fprintf(stderr, "Map segment\n");
         
         if (mem -> nextSeenSize == 0) {
                 if (mem -> segmentsCapacity == mem -> segmentsSize) {
                         expandSegments(mem);
                 }
-                mem -> segments[mem -> segmentsSize].words = CALLOC(size, sizeof(uint32_t));
+                // fprintf(stderr, "Domain expansion\n");
+                
+                // fprintf(stderr, "Infinite void: %i %i\n", mem -> segmentsCapacity, mem -> segmentsSize);
+                
+                if (size != 0)
+                        mem -> segments[mem -> segmentsSize].words = CALLOC(size, sizeof(uint32_t));
+                else 
+                        mem -> segments[mem -> segmentsSize].words = NULL;
+
                 mem -> segments[mem -> segmentsSize].size  = size;
 
                 uint32_t index = mem -> segmentsSize;
                 mem -> segmentsSize++;
+                // fprintf(stderr, "End Map segment (unseen)\n");
                 return index;
         }
         mem -> nextSeenSize--;
         uint32_t nextPosition = mem -> nextSeenSize; 
         uint32_t index = mem -> nextSeenSegID[nextPosition];
-        mem -> segments[index].words = CALLOC(size, sizeof(uint32_t)),
+        if (size != 0)
+                mem -> segments[index].words = CALLOC(size, sizeof(uint32_t));
+        else 
+                mem -> segments[mem -> segmentsSize].words = NULL;
         mem -> segments[index].size = size;
         
+        // fprintf(stderr, "End Map segment (seen)\n");
         return index;
 
 }
@@ -318,7 +331,7 @@ SegmentID Mem_mapNew(Mem mem, uint32_t size)
  */
 void Mem_mapFree(Mem mem, uint32_t segID) 
 {
-        
+        // fprintf(stderr, "Free Segment\n");
         FREE(mem -> segments[segID].words);
         uint32_t nextPos = mem -> nextSeenSize;
         if (mem -> nextSeenCapacity == nextPos) {
@@ -326,7 +339,7 @@ void Mem_mapFree(Mem mem, uint32_t segID)
         }
         mem -> nextSeenSegID[nextPos] = segID;
         mem -> nextSeenSize++;
-        
+        // fprintf(stderr, "End Free segment (unseen)\n");
 }
 
 
@@ -422,7 +435,6 @@ void initializeProgram(CPU_State state, FILE *program)
         mem -> segments[0].size  = numInstructions;
         
         state -> mainInstructionSize = numInstructions;
-
         for (int index = 0; Seq_length(instructions) > 0; index++)
         {
                 uint32_t instruction = 
@@ -443,9 +455,11 @@ void initializeProgram(CPU_State state, FILE *program)
  */
 void executeFunction(CPU_State state)
 {
+        
         // GET INSTRUCTION 
         if (state -> programCounter >= state -> mainInstructionSize) {
                 state -> isRunning = false;
+                fprintf(stderr, "%i / %i\n", state -> programCounter, state -> mainInstructionSize);
                 return; 
         }
         uint32_t instruction = state -> mem -> segments[0].words[state -> programCounter]; // Mem_getWord(state -> mem, 0, state -> programCounter);
@@ -490,9 +504,10 @@ void executeFunction(CPU_State state)
                 CPU_nand(state, instruction);
                 break;
 
-                // case HALT:
-                // return; 
-                // break;
+                case HALT:
+                
+                state -> isRunning = false;
+                break;
 
                 case MAPSEG:
                 // fprintf(stderr, "MAPSEG\n");
@@ -525,8 +540,8 @@ void executeFunction(CPU_State state)
                 break;
 
                 default:
+                
                 state -> isRunning = false;
-                return; 
                 break;
         }
         
@@ -784,18 +799,26 @@ void executeFunction(CPU_State state)
         Mem      mem        = state -> mem;
 
         state -> programCounter = registers[rc];
-
+        
         if (registers[rb] == 0) {
                 return;
         }
+        // fprintf(stderr, "Instruction pointer: %i\n", registers[rc]);
+        // fprintf(stderr, "Actual Instruction pointer: %i\n", state -> programCounter);
+        
         Segment seg = mem -> segments[registers[rb]];
-        Segment copy = {
-                CALLOC(seg.size, sizeof(uint32_t)),
-                seg.size
-        };
-        FREE(mem -> segments[0].words);
-        mem -> segments[0].words = copy.words;
-        mem -> segments[0].size = copy.size;
+
+        FREE(mem -> segments[0].words); // By case above, r[rb] != 0
+        
+        mem -> segments[0].words = CALLOC(seg.size, sizeof(uint32_t));
+        mem -> segments[0].size  = seg.size;
+        
+        for (uint32_t i = 0; i < seg.size; i++) {
+                mem -> segments[0].words[i] = seg.words[i];
+        }
+        state -> mainInstructionSize = seg.size;
+        
+        
 
         // Segment seg  = Mem_getSegment(mem, registers[rb]);
         // Segment copy = Segment_copy(seg);
