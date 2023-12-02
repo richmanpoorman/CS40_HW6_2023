@@ -1,0 +1,11 @@
+# Bitwise OR 
+
+# not (A | B) = (not A) & (not B) = not ((not A) nand (not B)) 
+# (A | B) = not not ((not A) nand (not B)) = (not A) nand (not B)
+include com.tasm 
+
+macro or 
+com rt,p2
+com p1,p3
+nand p1,p1,rt
+mend

@@ -1,0 +1,8 @@
+# Binary AND 
+
+include com.tasm
+
+macro and 
+nand p1,p2,p3
+com p1,p1
+mend 

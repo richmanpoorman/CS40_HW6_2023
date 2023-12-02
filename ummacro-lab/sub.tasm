@@ -1,0 +1,7 @@
+# Subtraction
+
+include neg.tasm
+macro sub 
+neg p1,p3
+add p1,p1,p2
+mend

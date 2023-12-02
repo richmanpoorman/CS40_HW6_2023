@@ -1,0 +1,88 @@
+#			includetest.tasm
+#                   Author: Noah Mendelsohn
+#
+#      This program is an adaptation of simplemacro.tasm. 
+#
+#      Here we illustrate the use of "include" to put the macro in a
+#      separate file
+#
+
+#--------------------------------------------------------------------
+#                            main
+#--------------------------------------------------------------------
+
+include writechar.tasm
+include com.tasm
+include mov.tasm
+include neg.tasm
+include sub.tasm
+include and.tasm 
+include or.tasm
+
+temp r6
+loadval r3,65                  # This is the letter A in ASCII
+writechar r3                   # invoke the macro: p1 is set to r3
+loadval r5,2
+add r3,r3,r5
+writechar r3                   # Output the result of the add
+
+loadval r5,10
+writechar r5
+
+# Mov test
+loadval r3,66
+loadval r4,65
+mov r3,r4
+writechar r3 # Print A
+writechar r4 # Print A
+
+writechar r5
+
+# com test
+loadval r3,0 # 0
+com r3,r3 # Complement of 0 = -1
+loadval r4,66 # Add 66 to -1
+add r3,r3,r4
+writechar r3 # Print A
+
+writechar r5
+
+# Neg test
+loadval r3,65 # A
+com r3,r3 # -(A) - 1
+neg r3,r3
+writechar r3 # Print B
+
+writechar r5
+
+# Sub test 
+loadval r3,2
+loadval r4,67
+sub r3,r4,r3
+writechar r3 # Print A
+writechar r4 # Print C
+
+writechar r5
+
+# AND Test 
+loadval r3,67
+loadval r4,65
+and r3,r3,r4 
+writechar r3 # Print A 
+loadval r3,69
+and r3,r3,r4 
+writechar r3 # Print A
+
+writechar r5 
+
+# OR Test 
+loadval r3,64 
+loadval r4,1
+or r3,r3,r4 
+writechar r3 # Print A 
+loadval r3,64
+loadval r4,65
+or r3,r3,r4 
+writechar r3 # Print B
+
+halt
