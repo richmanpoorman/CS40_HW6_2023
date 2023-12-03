@@ -111,9 +111,9 @@ CPU_State CPU_new(FILE *input, FILE *output);
 
 
 Mem Mem_new();
-void Mem_freeMemory(Mem *mem);
-SegmentID Mem_mapNew(Mem mem, uint32_t seg);
-void Mem_mapFree(Mem mem, uint32_t segID);
+static inline void Mem_freeMemory(Mem *mem);
+static inline SegmentID Mem_mapNew(Mem mem, uint32_t seg);
+static inline void Mem_mapFree(Mem mem, uint32_t segID);
 
 void expandSegments(Mem mem);
 void expandNextSeen(Mem mem);
@@ -182,7 +182,7 @@ Mem Mem_new()
  * Notes     : Will CRE if mem is null or *mem is null;
  *             Will set the value in mem to NULL
  */
-void Mem_freeMemory(Mem *mem)
+static inline void Mem_freeMemory(Mem *mem)
 {
         Mem memory = *mem;
         uint32_t size = memory -> segmentsSize;
@@ -207,7 +207,7 @@ void Mem_freeMemory(Mem *mem)
  * Return    : None
  * Notes     : Will CRE if mem is NULL
  */
-SegmentID Mem_mapNew(Mem mem, uint32_t size) 
+static inline SegmentID Mem_mapNew(Mem mem, uint32_t size) 
 {
         // fprintf(stderr, "Map segment\n");
         
@@ -254,7 +254,7 @@ SegmentID Mem_mapNew(Mem mem, uint32_t size)
  * Notes     : Will CRE if mem is NULL or the segID is greater than the 
  *             memory size
  */
-void Mem_mapFree(Mem mem, uint32_t segID) 
+static inline void Mem_mapFree(Mem mem, uint32_t segID) 
 {
         // fprintf(stderr, "Free Segment\n");
         FREE(mem -> segments[segID].words);
