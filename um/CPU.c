@@ -18,7 +18,7 @@
 
 #define MAX_VALUE 0xffffffff
 
-#define numInitialInstructions 8192
+#define numInitialInstructions 256
 
 #define loadBits 0x01ffffff
 #define instructionBits 0xf0000000
@@ -30,21 +30,23 @@
 #define raLsb 6
 #define rbLsb 3
 #define rLoadLsb 25
+typedef enum Instruction {
+        CMOV         = 0,
+        SEGLOAD      = 1,
+        SEGSTORE     = 2,
+        ADD          = 3,
+        MUL          = 4,
+        DIV          = 5,
+        NAND         = 6,
+        HALT         = 7,
+        MAPSEG       = 8,
+        UNMAPSEG     = 9,
+        OUT          = 10,
+        IN           = 11,
+        LOADPROGRAM  = 12,
+        LOADVALUE    = 13
+} Instruction;
 
-#define CMOV         0
-#define SEGLOAD      1
-#define SEGSTORE     2
-#define ADD          3
-#define MUL          4
-#define DIV          5
-#define NAND         6
-#define HALT         7
-#define MAPSEG       8
-#define UNMAPSEG     9
-#define OUT          10
-#define IN           11
-#define LOADPROGRAM  12
-#define LOADVALUE    13
 /*
  * Name    : CPU_State
  * Purpose : Represents the current state of the computer at any given time
@@ -91,7 +93,7 @@ void runProgram(FILE *input, FILE *output, FILE *program);
 
 CPU_State CPU_new(FILE *input, FILE *output);
 void initializeProgram(CPU_State state, Mem mem, FILE *program);
-static inline void executeFunction(CPU_State state, Mem mem);
+void executeFunction(CPU_State state, Mem mem);
 
  void CPU_cmove(CPU_State state, uint32_t instruction);
  void CPU_segLoad(CPU_State state, Mem mem, uint32_t instruction);
@@ -282,8 +284,89 @@ void runProgram(FILE *input, FILE *output, FILE *program)
         CPU_State state = CPU_new(input, output);
         Mem mem = Mem_new();
         initializeProgram(state, mem, program);
-        while (state -> isRunning) {
-                executeFunction(state, mem);
+        while (state -> programCounter < state -> mainInstructionSize) {
+                uint32_t instruction = mem -> segments[0].words[state -> programCounter]; // Mem_getWord(state -> mem, 0, state -> programCounter);
+                state -> programCounter++;
+
+                // END OF GET INSTRUCTION
+                Instruction instructionType = (instruction & instructionBits) >> instructionLSB;
+
+                switch(instructionType) {
+                        case CMOV:
+                        // fprintf(stderr, "CMOV\n");
+                        CPU_cmove(state, instruction);
+                        break;
+
+                        case SEGLOAD:
+                        // fprintf(stderr, "SEGLOAD\n");
+                        CPU_segLoad(state, mem, instruction);
+                        break;
+
+                        case SEGSTORE:
+                        // fprintf(stderr, "SEGSTORE\n");
+                        CPU_segStore(state, mem, instruction);
+                        break;
+
+                        case ADD:
+                        // fprintf(stderr, "ADD r%u = r%u + r%u\n", ra, rb, rc);
+                        CPU_add(state, instruction);
+                        break;
+
+                        case MUL:
+                        // fprintf(stderr, "MUL\n");
+                        CPU_mult(state, instruction);
+                        break;
+
+                        case DIV:
+                        // fprintf(stderr, "DIV\n");
+                        CPU_div(state, instruction);
+                        break;
+
+                        case NAND:
+                        // fprintf(stderr, "NAND\n");
+                        CPU_nand(state, instruction);
+                        break;
+
+                        // case HALT:
+                        
+                        // state -> programCounter = state -> mainInstructionSize;
+                        // break;
+
+                        case MAPSEG:
+                        // fprintf(stderr, "MAPSEG\n");
+                        CPU_mapSeg(state, mem, instruction);
+                        break;
+
+                        case UNMAPSEG:
+                        // fprintf(stderr, "UNMAPSEG\n");
+                        CPU_unmapSeg(state, mem, instruction);
+                        break;
+
+                        case OUT:
+                        // fprintf(stderr, "OUT\n");
+                        CPU_printOut(state, instruction);
+                        break;
+
+                        case IN:
+                        // fprintf(stderr, "IN\n");
+                        CPU_readIn(state, instruction);
+                        break;
+
+                        case LOADPROGRAM:
+                        // fprintf(stderr, "LOADPROGRAM\n");
+                        CPU_loadProgram(state, mem, instruction);
+                        break;
+
+                        case LOADVALUE:
+                        // fprintf(stderr, "LOADVALUE r%u = %u\n", (instruction & rLoadBits) >> rLoadLsb, instruction & loadBits);
+                        CPU_loadValue(state, instruction);
+                        break;
+
+                        default:
+                        
+                        state -> programCounter = state -> mainInstructionSize;
+                        break;
+                }
         }
         
         FREE(state);
@@ -368,99 +451,18 @@ void initializeProgram(CPU_State state, Mem mem, FILE *program)
  * Notes     : Will CRE if it tried to read an instruction that was invalid
  */
 
-static inline void executeFunction(CPU_State state, Mem mem)
-{
+// void executeFunction(CPU_State state, Mem mem)
+// {
         
-        // GET INSTRUCTION 
-        if (state -> programCounter >= state -> mainInstructionSize) {
-                state -> isRunning = false;
-                // fprintf(stderr, "%i / %i\n", state -> programCounter, state -> mainInstructionSize);
-                return; 
-        }
-        uint32_t instruction = mem -> segments[0].words[state -> programCounter]; // Mem_getWord(state -> mem, 0, state -> programCounter);
-        state -> programCounter++;
-
-        // END OF GET INSTRUCTION
-        uint32_t instructionType = (instruction & instructionBits) >> instructionLSB;
-
-        switch(instructionType) {
-                case CMOV:
-                // fprintf(stderr, "CMOV\n");
-                CPU_cmove(state, instruction);
-                break;
-
-                case SEGLOAD:
-                // fprintf(stderr, "SEGLOAD\n");
-                CPU_segLoad(state, mem, instruction);
-                break;
-
-                case SEGSTORE:
-                // fprintf(stderr, "SEGSTORE\n");
-                CPU_segStore(state, mem, instruction);
-                break;
-
-                case ADD:
-                // fprintf(stderr, "ADD r%u = r%u + r%u\n", ra, rb, rc);
-                CPU_add(state, instruction);
-                break;
-
-                case MUL:
-                // fprintf(stderr, "MUL\n");
-                CPU_mult(state, instruction);
-                break;
-
-                case DIV:
-                // fprintf(stderr, "DIV\n");
-                CPU_div(state, instruction);
-                break;
-
-                case NAND:
-                // fprintf(stderr, "NAND\n");
-                CPU_nand(state, instruction);
-                break;
-
-                case HALT:
-                
-                state -> isRunning = false;
-                break;
-
-                case MAPSEG:
-                // fprintf(stderr, "MAPSEG\n");
-                CPU_mapSeg(state, mem, instruction);
-                break;
-
-                case UNMAPSEG:
-                // fprintf(stderr, "UNMAPSEG\n");
-                CPU_unmapSeg(state, mem, instruction);
-                break;
-
-                case OUT:
-                // fprintf(stderr, "OUT\n");
-                CPU_printOut(state, instruction);
-                break;
-
-                case IN:
-                // fprintf(stderr, "IN\n");
-                CPU_readIn(state, instruction);
-                break;
-
-                case LOADPROGRAM:
-                // fprintf(stderr, "LOADPROGRAM\n");
-                CPU_loadProgram(state, mem, instruction);
-                break;
-
-                case LOADVALUE:
-                // fprintf(stderr, "LOADVALUE r%u = %u\n", (instruction & rLoadBits) >> rLoadLsb, instruction & loadBits);
-                CPU_loadValue(state, instruction);
-                break;
-
-                default:
-                
-                state -> isRunning = false;
-                break;
-        }
+//         // GET INSTRUCTION 
+//         if (state -> programCounter >= state -> mainInstructionSize) {
+//                 state -> isRunning = false;
+//                 // fprintf(stderr, "%i / %i\n", state -> programCounter, state -> mainInstructionSize);
+//                 return; 
+//         }
         
-}
+        
+// }
 
 /*
  * Name      : CPU_cmove
@@ -759,18 +761,18 @@ static inline void executeFunction(CPU_State state, Mem mem)
 #undef rbLsb 
 #undef rLoadLsb 
 
-#undef CMOV         
-#undef SEGLOAD      
-#undef SEGSTORE     
-#undef ADD          
-#undef MUL          
-#undef DIV          
-#undef NAND         
-#undef HALT         
-#undef MAPSEG       
-#undef UNMAPSEG     
-#undef OUT          
-#undef IN           
-#undef LOADPROGRAM  
-#undef LOADVALUE    
-#undef START_SIZE
+// #undef CMOV         
+// #undef SEGLOAD      
+// #undef SEGSTORE     
+// #undef ADD          
+// #undef MUL          
+// #undef DIV          
+// #undef NAND         
+// #undef HALT         
+// #undef MAPSEG       
+// #undef UNMAPSEG     
+// #undef OUT          
+// #undef IN           
+// #undef LOADPROGRAM  
+// #undef LOADVALUE    
+// #undef START_SIZE
