@@ -19,6 +19,7 @@
 #define MAX_VALUE 0xffffffff
 
 #define numInitialInstructions 8192
+#define instructionLSB 28
 
 #define loadBits 0x01ffffff
 #define instructionBits 0xf0000000
@@ -30,20 +31,20 @@
 #define rbLsb 3
 #define rLoadLsb 25
 
-#define CMOV         0x00000000
-#define SEGLOAD      0x10000000
-#define SEGSTORE     0x20000000
-#define ADD          0x30000000
-#define MUL          0x40000000
-#define DIV          0x50000000
-#define NAND         0x60000000
-#define HALT         0x70000000
-#define MAPSEG       0x80000000
-#define UNMAPSEG     0x90000000
-#define OUT          0xa0000000
-#define IN           0xb0000000
-#define LOADPROGRAM  0xc0000000
-#define LOADVALUE    0xd0000000
+#define CMOV         0
+#define SEGLOAD      1
+#define SEGSTORE     2
+#define ADD          3
+#define MUL          4
+#define DIV          5
+#define NAND         6
+#define HALT         7
+#define MAPSEG       8
+#define UNMAPSEG     9
+#define OUT          10
+#define IN           11
+#define LOADPROGRAM  12
+#define LOADVALUE    13
 /*
  * Name    : CPU_State
  * Purpose : Represents the current state of the computer at any given time
@@ -98,7 +99,7 @@ void runProgram(FILE *input, FILE *output, FILE *program);
 CPU_State CPU_new(FILE *input, FILE *output);
 void CPU_free(CPU_State *state);
 void initializeProgram(CPU_State state, FILE *program);
-void executeFunction(CPU_State state);
+static inline void executeFunction(CPU_State state);
 
  void CPU_cmove(CPU_State state, uint32_t instruction);
  void CPU_segLoad(CPU_State state, uint32_t instruction);
@@ -209,72 +210,6 @@ void Mem_freeMemory(Mem *mem)
         FREE(*mem); 
 }
 
-// /*
-//  * Name      : Mem_getSegment
-//  * Purpose   : Gets the full segment at a given memory id
-//  * Parameter : (Mem) mem -- The memory block containing the segment
-//  *             (uint32_t) segID -- The 32-bit memory identifier of the segment
-//  * Return    : None
-//  * Notes     : Will CRE if mem is NULL or the segID is greater than the 
-//  *             memory size
-//  */
-// Segment Mem_getSegment(Mem mem, uint32_t segID) 
-// {
-        
-//         return mem -> segments[segID];
-// }
-
-// /*
-//  * Name      : Mem_setSegment
-//  * Purpose   : Sets the segment in memory to a given value
-//  * Parameter : (Mem) mem -- The memory block containing the segment
-//  *             (uint32_t) segID -- The 32-bit memory identifier of the segment
-//  *             (Segment) seg -- The value to set the segment to
-//  * Return    : None
-//  * Notes     : Will CRE if mem is NULL 
-//  */
-// void Mem_setSegment(Mem mem, uint32_t segID, Segment seg) 
-// {
-//         FREE(mem -> segments[segID].words);
-//         mem -> segments[segID] = {
-//                 seg.words,
-//                 seg.size
-//         };
-        
-// }
-
-/*
- * Name      : Mem_getWord
- * Purpose   : Gets the word at a given position in a given memory segment
- * Parameter : (Mem) mem -- The memory block containing the segment
- *             (uint32_t) segID -- The memory identifier of the segment
- *             (uint32_t) wordID -- The word identifier within the segment
- * Return    : None
- * Notes     : Will CRE if mem is NULL or the segID is greater than the 
- *             memory size
- */
-// Word Mem_getWord(Mem mem, uint32_t segID, uint32_t wordID) 
-// {
-        
-//         return mem -> segments[segID].words[wordID];
-// }
-
-// /*
-//  * Name      : Mem_setWord
-//  * Purpose   : Sets the word at a given position in a given memory segment
-//  * Parameter : (Mem) mem -- The memory block containing the segment
-//  *             (uint32_t) segID -- The memory identifier of the segment
-//  *             (uint32_t) wordID -- The word identifier within the segment
-//  *             (uint32_t) value -- The value to set the word to
-//  * Return    : None
-//  * Notes     : Will CRE if mem is NULL or the segID is greater than the 
-//  *             memory size
-//  */
-// void Mem_setWord(Mem mem, uint32_t segID, uint32_t wordID, 
-//                     uint32_t value) 
-// {
-//         mem -> segments[segID].words[wordID] = value;
-// }
 
 /*
  * Name      : Mem_mapNew
@@ -470,7 +405,7 @@ void initializeProgram(CPU_State state, FILE *program)
  * Return    : None
  * Notes     : Will CRE if it tried to read an instruction that was invalid
  */
-void executeFunction(CPU_State state)
+static inline void executeFunction(CPU_State state)
 {
         
         // GET INSTRUCTION 
@@ -483,7 +418,7 @@ void executeFunction(CPU_State state)
         state -> programCounter++;
 
         // END OF GET INSTRUCTION
-        uint32_t instructionType = instruction & instructionBits;
+        uint32_t instructionType = (instruction & instructionBits) >> instructionLSB;
 
         switch(instructionType) {
                 case CMOV:
@@ -860,112 +795,10 @@ void executeFunction(CPU_State state)
 }
 
 
-// /*
-//  * Name      : Segment_new
-//  * Purpose   : Creates new segment for the UM memory
-//  * Parameter : (uint32_t) size -- The number of words in the segment
-//  * Return    : (Segment) The struct representing a specific segment of memory
-//  * Notes     : Will CRE if it does not have enough memory to allocate
-//  */
-// Segment Segment_new(uint32_t size)
-// {
-//         Segment seg  = ALLOC(sizeof(*seg));
-
-//         seg -> size  = size;
-//         if (size > 0) {
-//                 seg -> words = CALLOC(size, sizeof(Word));
-//         } 
-//         else {
-//                 seg -> words = NULL;
-//         } 
-        
-//         return seg;
-// }
-
-// /*
-//  * Name      : Segment_copy
-//  * Purpose   : Creates a copy of the given segment
-//  * Parameter : (Segment) seg -- The segment to copy
-//  * Return    : (Segment) The struct representing the copy of the segment
-//  * Notes     : Will CRE if the given segment is null;
-//  *             Will CRE if it does not have enough memory to allocate
-//  */
-// Segment Segment_copy(Segment seg)
-// {
-//         uint32_t size = seg -> size;
-//         Segment newSeg = Segment_new(size);
-
-//         for (uint32_t wordIndex = 0; wordIndex < size; wordIndex++) {
-//                 newSeg -> words[wordIndex] = seg -> words[wordIndex];
-//         }
-
-//         return newSeg;
-
-// }
-
-// /*
-//  * Name      : Segment_free
-//  * Purpose   : Frees segment of the UM memory
-//  * Parameter : (Segment *) seg -- The pointer to the segment to free
-//  * Return    : None
-//  * Notes     : Will CRE if seg is null or *seg is null;
-//  *             Will set the value in seg to NULL
-//  */
-// void Segment_free(Segment *seg)
-// {
-//         Segment segment = *seg;
-        
-//         if (segment -> words != NULL) {
-//                 FREE(segment -> words);
-//         }
-
-//         FREE(*seg);
-// }
-
-// /*
-//  * Name      : Segment_size
-//  * Purpose   : Gets the size of the segment
-//  * Parameter : (Segment) seg -- The segment to check the size of 
-//  * Return    : (uint32_t) The size of the segment
-//  * Notes     : Will CRE if seg is NULL
-//  */
-// uint32_t Segment_size(Segment seg)
-// {
-//         return seg -> size;
-// }
-
-// /*
-//  * Name      : Segment_getWord
-//  * Purpose   : Gets the word at a given position within the segment
-//  * Parameter : (Segment)  seg      -- The segment to get word from
-//  *             (uint32_t) position -- Position to access
-//  * Return    : (Word)     The word that was located at the given position
-//  * Notes     : Will CRE if seg is NULL or the position is greater than the 
-//  *                 segment size
-//  */
-// Word Segment_getWord(Segment seg, uint32_t position)
-// {
-//         return seg -> words[position];
-// }
-
-// /*
-//  * Name      : Segment_setWord
-//  * Purpose   : Sets the word at a given position within the segment
-//  * Parameter : (Segment)  seg      -- The segment to set word in
-//  *             (uint32_t) position -- Position to access
-//  *             (Word)     word     -- Word to place at the position
-//  * Return    : None
-//  * Notes     : Will CRE if seg is NULL or the position is greater than the 
-//  *                 segment size
-//  */
-// void Segment_setWord(Segment seg, uint32_t position, Word word)
-// {
-//         seg -> words[position] = word;
-// }
-
 #undef MAX_VALUE 
 
 #undef numInitialInstructions
+#undef instructionLSB 
 
 #undef loadBits 
 #undef instruction
