@@ -476,7 +476,7 @@ void executeFunction(CPU_State state)
         // GET INSTRUCTION 
         if (state -> programCounter >= state -> mainInstructionSize) {
                 state -> isRunning = false;
-                fprintf(stderr, "%i / %i\n", state -> programCounter, state -> mainInstructionSize);
+                // fprintf(stderr, "%i / %i\n", state -> programCounter, state -> mainInstructionSize);
                 return; 
         }
         uint32_t instruction = state -> mem -> segments[0].words[state -> programCounter]; // Mem_getWord(state -> mem, 0, state -> programCounter);
