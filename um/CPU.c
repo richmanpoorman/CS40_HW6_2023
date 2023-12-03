@@ -12,11 +12,13 @@
 #include <mem.h>
 #include <stdbool.h>
 #include <stdio.h>
-#include <seq.h>
+// #include <seq.h>
 // #include "Segment.h"
 // #include <assert.h>
 
 #define MAX_VALUE 0xffffffff
+
+#define numInitialInstructions 8192
 
 #define loadBits 0x01ffffff
 #define instructionBits 0xf0000000
@@ -415,7 +417,10 @@ void CPU_free(CPU_State *state) {
 
 void initializeProgram(CPU_State state, FILE *program)
 {       
-        Seq_T instructions = Seq_new(1024);
+        uint32_t  capacity     = numInitialInstructions;
+        uint32_t *instructions = CALLOC(capacity, sizeof(uint32_t));
+        uint32_t  index        = 0;
+        // Seq_T instructions = Seq_new(1024);
         unsigned char byte = fgetc(program);
         while (!feof(program)) {
                 uint32_t instruction = 0;
@@ -424,26 +429,38 @@ void initializeProgram(CPU_State state, FILE *program)
                         // assert(!ferror(program));
                         byte = fgetc(program);
                 }
-                
-                Seq_addhi(instructions, (void *)(uintptr_t)instruction);
+                instructions[index] = instruction;
+                index++;
+
+                // Expansion //
+                if (index == capacity) {
+                        capacity *= 2;
+                        uint32_t *newInstructions = CALLOC(capacity, sizeof(uint32_t));
+                        for (uint32_t i = 0; i < index; i++) {
+                                newInstructions[i] = instructions[i];
+                        }
+                        FREE(instructions);
+                        instructions = newInstructions;
+                }
+                // Seq_addhi(instructions, (void *)(uintptr_t)instruction);
         }
         
-        uint32_t numInstructions = Seq_length(instructions);
-
+        // uint32_t numInstructions = Seq_length(instructions);
         Mem mem = state -> mem;
-        mem -> segments[0].words = CALLOC(numInstructions, sizeof(uint32_t));
-        mem -> segments[0].size  = numInstructions;
+        mem -> segments[0].words = instructions;
+        mem -> segments[0].size  = index;
         
-        state -> mainInstructionSize = numInstructions;
-        for (int index = 0; Seq_length(instructions) > 0; index++)
-        {
-                uint32_t instruction = 
-                        (uint32_t)(uintptr_t) Seq_remlo(instructions);
-                
-                mem -> segments[0].words[index] = instruction;
-        }
+        state -> mainInstructionSize = index;
 
-        Seq_free(&instructions);
+        // for (int i = 0; i < numInstructions; i++)
+        // {
+        //         uint32_t instruction = 
+        //                 (uint32_t)(uintptr_t) Seq_remlo(instructions);
+                
+        //         mem -> segments[0].words[index] = instruction;
+        // }
+
+        // Seq_free(&instructions);
 }
 
 /*
@@ -947,6 +964,8 @@ void executeFunction(CPU_State state)
 // }
 
 #undef MAX_VALUE 
+
+#undef numInitialInstructions
 
 #undef loadBits 
 #undef instruction
