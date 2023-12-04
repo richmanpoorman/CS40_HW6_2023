@@ -332,9 +332,10 @@ static inline void runProgram(FILE *input, FILE *output, FILE *program)
 
         // initializeProgram(state, mem, program);
         
+        uint32_t *mainProgram = mem -> segments[0].words;
         // RUN PROGRAM // 
         while (programCounter < mainInstructionSize) {
-                uint32_t instruction = mem -> segments[0].words[programCounter]; // Mem_getWord(mem, 0, programCounter);
+                uint32_t instruction = mainProgram[programCounter]; // Mem_getWord(mem, 0, programCounter);
                 programCounter++;
 
                 // END OF GET INSTRUCTION
@@ -408,16 +409,29 @@ static inline void runProgram(FILE *input, FILE *output, FILE *program)
                                 programCounter = registers[instruction & rcBits];
                                 if (registers[rb] != 0) {
                                         Segment seg = mem -> segments[registers[rb]];
-
-                                        FREE(mem -> segments[0].words); // By case above, r[rb] != 0
-                                        
-                                        mem -> segments[0].words = CALLOC(seg.size, sizeof(uint32_t));
-                                        mem -> segments[0].size  = seg.size;
-                                        
-                                        for (uint32_t i = 0; i < seg.size; i++) {
-                                                mem -> segments[0].words[i] = seg.words[i];
+                                        uint32_t programSegSize = seg.size;
+                                        uint32_t *programSegWords = seg.words;
+                                        if (programSegSize > mainInstructionSize) {
+                                                FREE(mainProgram);
+                                                mainProgram = CALLOC(programSegSize, sizeof(uint32_t));
+                                                mem -> segments[0].words = mainProgram;
                                         }
-                                        mainInstructionSize = seg.size;
+                                        
+
+                                        for (uint32_t i = 0; i < programSegSize; i++) {
+                                                mainProgram[i] = programSegWords[i];
+                                        }
+                                        mainInstructionSize = programSegSize;
+                                        // FREE(mainProgram); // By case above, r[rb] != 0
+                                        
+                                        // mainProgram = CALLOC(seg.size, sizeof(uint32_t));
+                                        // mem -> segments[0].size  = seg.size;
+                                        // mem -> segments[0].words = mainProgram;
+                                        // for (uint32_t i = 0; i < seg.size; i++) {
+                                        //         mainProgram[i] = seg.words[i];
+                                        // }
+                                        // mainInstructionSize = seg.size;
+                                        
                                 }
                         }
                         break;
