@@ -2,7 +2,7 @@
 
 ############### Variables ###############
 # The compiler being used
-CC = gcc 
+CC = gcc -O2
 
 # Include path
 IFLAGS = -I/comp/40/build/include -I/usr/sup/cii40/include/cii \
@@ -16,7 +16,7 @@ LDFLAGS = -g  -L/comp/40/build/lib -L/usr/sup/cii40/lib64
 	  
 
 # Libraries for Linking
-LDLIBS = -lcii40 -lbitpack -lm -lrt -L/comp/40/build/lib  -lcii40
+LDLIBS = -lcii40-O2 -lbitpack -lm -lrt -L/comp/40/build/lib  -lcii40
  	 
 
 # all the .h files

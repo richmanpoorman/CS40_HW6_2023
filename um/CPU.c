@@ -100,7 +100,7 @@ CPU_State CPU_new(FILE *input, FILE *output);
  void CPU_mult(uint32_t *registers ,uint32_t instruction);
  void CPU_div(uint32_t *registers, uint32_t instruction);
  void CPU_nand(uint32_t *registers, uint32_t instruction);
- void CPU_mapSeg(uint32_t *registers, Mem mem, uint32_t instruction);
+ static inline void CPU_mapSeg(uint32_t *registers, Mem mem, uint32_t instruction);
  void CPU_unmapSeg(uint32_t *registers, Mem mem, uint32_t instruction);
  void CPU_printOut(uint32_t *registers, FILE *output, uint32_t instruction);
  void CPU_readIn(uint32_t *registers, FILE *input, uint32_t instruction);
@@ -109,9 +109,9 @@ CPU_State CPU_new(FILE *input, FILE *output);
 
 
 Mem Mem_new();
-void Mem_freeMemory(Mem *mem);
-SegmentID Mem_mapNew(Mem mem, uint32_t seg);
-void Mem_mapFree(Mem mem, uint32_t segID);
+static inline void Mem_freeMemory(Mem *mem);
+static inline SegmentID Mem_mapNew(Mem mem, uint32_t seg);
+static inline void Mem_mapFree(Mem mem, uint32_t segID);
 
 void expandSegments(Mem mem);
 void expandNextSeen(Mem mem);
@@ -180,7 +180,7 @@ Mem Mem_new()
  * Notes     : Will CRE if mem is null or *mem is null;
  *             Will set the value in mem to NULL
  */
-void Mem_freeMemory(Mem *mem)
+static inline void Mem_freeMemory(Mem *mem)
 {
         Mem memory = *mem;
         uint32_t size = memory -> segmentsSize;
@@ -205,7 +205,7 @@ void Mem_freeMemory(Mem *mem)
  * Return    : None
  * Notes     : Will CRE if mem is NULL
  */
-SegmentID Mem_mapNew(Mem mem, uint32_t size) 
+static inline SegmentID Mem_mapNew(Mem mem, uint32_t size) 
 {
         // fprintf(stderr, "Map segment\n");
         
@@ -248,7 +248,7 @@ SegmentID Mem_mapNew(Mem mem, uint32_t size)
  * Notes     : Will CRE if mem is NULL or the segID is greater than the 
  *             memory size
  */
-void Mem_mapFree(Mem mem, uint32_t segID) 
+static inline void Mem_mapFree(Mem mem, uint32_t segID) 
 {
         
         FREE(mem -> segments[segID].words);
@@ -562,7 +562,7 @@ CPU_State CPU_new(FILE *input, FILE *output) {
  * Return    : None
  * Notes     : Alters the state of the CPU_State
  */
- void CPU_mapSeg(uint32_t *registers,Mem mem, uint32_t instruction)
+ static inline void CPU_mapSeg(uint32_t *registers,Mem mem, uint32_t instruction)
 {
         uint32_t rb = (instruction & rbBits) >> rbLsb;
         uint32_t rc = instruction & rcBits;
