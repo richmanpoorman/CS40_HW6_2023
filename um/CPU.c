@@ -289,8 +289,13 @@ void runProgram(FILE *input, FILE *output, FILE *program)
         while (!feof(program)) {
                 uint32_t instruction = 0;
                 for (int i = 3; i >= 0; i--) {
+                        if (ferror(program) || feof(program)) {
+                                fprintf(stderr, "There was something wrong with the file!\n");
+                                exit(EXIT_FAILURE);
+                        }
+                        // assert(!ferror(program) && !feof(program));
                         instruction = instruction | (byte << (i * 8));
-                        // assert(!ferror(program));
+                        
                         byte = fgetc(program);
                 }
                 instructions[index] = instruction;

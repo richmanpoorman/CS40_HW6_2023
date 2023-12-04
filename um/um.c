@@ -284,7 +284,7 @@ static inline void Mem_mapFree(Mem mem, uint32_t segID)
  * Return    : None
  * Notes     : Runs the entire program, and only ends when it reaches the end
  *             of instructions, or the program halts
- */
+ */ 
 static inline void runProgram(FILE *input, FILE *output, FILE *program)
 {
         // CPU STATE
@@ -303,6 +303,11 @@ static inline void runProgram(FILE *input, FILE *output, FILE *program)
                 uint32_t instruction = 0;
                 for (int i = 3; i >= 0; i--) {
                         instruction = instruction | (byte << (i * 8));
+                        if (ferror(program) || feof(program)) {
+                                fprintf(stderr, "There was something wrong with the program!\n");
+                                exit(EXIT_FAILURE);
+                                fprintf(stderr, "I am not supposed to be seen\n");
+                        }
                         // assert(!ferror(program));
                         byte = fgetc(program);
                 }
