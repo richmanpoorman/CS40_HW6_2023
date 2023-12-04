@@ -415,7 +415,7 @@ static inline void runProgram(FILE *input, FILE *output, FILE *program)
                                                 FREE(mainProgram);
                                                 mainProgram = CALLOC(programSegSize, sizeof(uint32_t));
                                                 mem -> segments[0].words = mainProgram;
-                                        }
+                                        } 
                                         
 
                                         for (uint32_t i = 0; i < programSegSize; i++) {
