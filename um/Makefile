@@ -23,7 +23,7 @@ LDLIBS = -lcii40-O2 -lbitpack -lm -lrt -L/comp/40/build/lib  -lcii40
 INCLUDES = $(shell echo *.h)
 
 ############### Modules ###############
-MODULES = CPU.o # Memory.o Segment.o 
+MODULES = # CPU.o  Memory.o Segment.o 
 
 ############### Rules ###############
 
