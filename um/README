@@ -1,18 +1,35 @@
-cs40 hw06 um
+cs40 hw07 profiling
 Matthew Wong (mwong14) and Ivi Fung (sfung02)
 
 Acknowledgements: We would like to thank the creator of advent.umz for
 entertaining us for at least 20 minutes.
-Asli-- for helping us figure out how to calculate our UMs runtime on
-50 million instructions!!! MVP fr.
-
-Bill-- Clarifications on failure mode
+Bill-- for his clarifications on failure modes
+George-- for helping us decipher the mystical tomes of qcachegrind
 
 Implementation Notes: To our knowledge, we have implemented every aspect of
-the spec correctly. 
+the spec correctly (and quickly)
+
+Analysis of Assembly:
+Hot spots...
+        - 10.83%: Instruction calls to calloc when creating memory segments
+        - 7.26%: Instruction calls to free when freeing memory segments
+        - 7.75%: Checking whether the program counter exceeds the size
+        of the instruction set (i.e. "whether the program should halt")
+        - 7.75%: Fetching instruction from segment
+        - 7.75%: Getting the opcode
+        - 11.63%: THE switch statement
+        - 12.48%: Segload
+        - 10.33%: Segstore
+We will focus our analysis on SEGLOAD.
+Problem: Currently, getting the register number to use is an expensive 
+operation because we are use many instructions to right shift and bitwise AND. 
+The assembler left shifts back after these operations because it does not
+know that the instruction can be safely modified.
+Solution: We know the register values are right next to each other in memory,
+and we don't use the instruction word after reading it. Therefore, we could
+AND on the last three bits to obtain the first register, then shift over by
+three bits, and repeat this three times to obtain all the registers.
 
 Time Spent on This Assignment:
         - Analysis: 2h
-        - Design: 8h
-        - Problem Solving: 8h
-        - Testing: 10h
+        - Problem Solving: 25h
